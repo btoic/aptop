@@ -7,7 +7,7 @@ from setuptools import setup
 
 def runSetup ():
     setup(name='aptop',
-          version='0.1.1a',
+          version='0.2.0a',
           author='Branko Toic' ,
           author_email='branko@toic.org' ,
           url='http://toic.org' ,

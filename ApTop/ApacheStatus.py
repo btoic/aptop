@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.1.1a"
+__version__ = "0.2.0a"
 
 import ConfigParser
 import os
@@ -97,16 +97,40 @@ class ApacheStatus(object):
         list of tuples containing vhost name and number of active connections
         """
         vstatus = {}
-        for status in data:
-            if status['M'] != '_' and status['M'] != '.':
-                if status['VHost'] in vstatus:
-                    vstatus[status['VHost']] += 1
-                else:
-                    vstatus[status['VHost']] = 1
+        vhosts = self.filter_active(data)
+        for status in vhosts:
+            if status['VHost'] in vstatus:
+                vstatus[status['VHost']] += 1
+            else:
+                vstatus[status['VHost']] = 1
         items = vstatus.items()
         items.sort(key=itemgetter(1), reverse=True)
 
         return items
+
+    def filter_active(self, data):
+        """
+        (list of dict) -> list of dict
+        
+        Returns filtered list of active connections
+        
+        """
+        filtered = []
+
+        for status in data:
+            if status['M'] != '_' and status['M'] != '.':
+                filtered.append(status)
+        return filtered
+
+
+    def display_vhosts(self, data):
+        """
+        (list of dict) -> list of dict
+        display only filtered list of vhost statuses
+        """
+
+        return self.filter_active(data)
+
 
     def parse_vhosts(self):
         """

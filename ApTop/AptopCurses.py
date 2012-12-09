@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.1.1a"
+__version__ = "0.2.0a"
 
 import curses
 import time
@@ -20,6 +20,7 @@ class AptopCurses(object):
 		self.refresh = self.aptop.refresh_rate()
 		self.counter = 0
 		self.BODY_H = self.MAX_H
+		self.view = 'V'
 		curses.wrapper(self.start)
 
 
@@ -33,15 +34,28 @@ class AptopCurses(object):
 				self.BODY_H = self.MAX_H - HEADER_HEIGHT - FOOTER_HEIGHT
 				c = self.stdscr.getch()
 				if c == ord('q') or c == ord('Q'): break
-				else:
-					self.draw_header()
-					self.draw_body()
-					self.iterate()
+				elif c == ord('v') or c == ord('V'):
+					self.view = 'V'
+				elif c == ord('d') or c == ord('D'):
+					self.view = 'D'
+
+				self.draw_view()
 		else:
 			print "Apache not running or wrong mod_status url!"
 			sys.exit(1)
 
+	def draw_view(self):
+		self.draw_header()
 
+		if self.view == 'V':
+			self.draw_vhosts()
+		elif self.view == 'D':
+			self.draw_dashboard()
+		else:
+			print "something went wrong"
+			sys.exit(1)
+		self.draw_footer()
+		self.iterate()
 
 	def iterate(self):
 		time.sleep(self.refresh)
@@ -63,8 +77,28 @@ class AptopCurses(object):
 			hcount += 1
 		header.refresh()
 
-	def draw_body(self):
-		""" draws a body window """
+	def draw_dashboard(self):
+		""" draws a dashboard window """
+		dash = curses.newwin(
+							self.BODY_H,
+							self.MAX_W,
+							HEADER_HEIGHT, 0
+							)
+
+		dash_data = self.aptop.display_vhosts(self.aptop.parse_vhosts())
+		dcount = 1
+		dash.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
+		dash.addstr(dcount, 1, str('Virtualhost'), curses.A_BOLD)
+		dash.addstr(dcount, 25, str('Client'), curses.A_BOLD)
+		for dash_line in dash_data:
+			dcount += 1
+			if dcount < self.BODY_H:
+				dash.addstr(dcount, 1, str(dash_line['VHost']))
+				dash.addstr(dcount, 25, str(dash_line['Client']))
+		dash.refresh()
+
+	def draw_vhosts(self):
+		""" draws a vhosts window """
 		body = curses.newwin(
 							self.BODY_H,
 							self.MAX_W,
@@ -83,7 +117,7 @@ class AptopCurses(object):
 				body.addstr(bcount, 20, str(body_line[0]))
 		body.refresh()
 
-	def draw_fooer(self):
+	def draw_footer(self):
 		""" draws a footer window """
 		footer = curses.newwin(
 								FOOTER_HEIGHT,
@@ -92,5 +126,9 @@ class AptopCurses(object):
 								)
 		footer.addstr(1, 1, 'Q')
 		footer.addstr(1, 3, ' Quit ApTOP', curses.A_REVERSE)
+		footer.addstr(1, 15, 'D')
+		footer.addstr(1, 17, ' Dashbord', curses.A_REVERSE)
+		footer.addstr(1, 27, 'V')
+		footer.addstr(1, 29, ' By Vhost', curses.A_REVERSE)
 		footer.refresh()
 
