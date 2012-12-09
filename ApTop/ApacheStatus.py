@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
-__date__ = "Dec 8, 2012 09:00 PM$"
-__version__ = "0.1.0"
+__date__ = "Dec 9, 2012 2:00 PM$"
+__version__ = "0.1.1a"
 
 import ConfigParser
 import os

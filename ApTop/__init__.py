@@ -1,2 +1,3 @@
 from ApacheStatus import ApacheStatus
-__all__ = ['ApacheStatus', ]
+from AptopCurses import AptopCurses
+__all__ = ['ApacheStatus', 'AptopCurses']
