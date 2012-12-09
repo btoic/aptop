@@ -1,6 +1,6 @@
 ApTop ia a top(1) alike monitoring utility for Apache.
-
-== Requirements
+Requirements
+============
 
 Requires additional python packages lxml.
 You can install those with easy_install lxml or pip install lxml
@@ -11,7 +11,8 @@ ApTop will look for /etc/aptop.conf or ~/.aptop.conf for configuration options
 By default aptop will use http://localhost/server-status url for grabbing 
 data for display. You can override this with status_url conf variable.
 
-== Configuration
+Configuration
+=============
 
 ApTop will use some default values if configuration files are not found
 system wide configuration file will be automaticaly placed in /etc/aptop.conf
