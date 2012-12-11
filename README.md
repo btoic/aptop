@@ -6,6 +6,11 @@ Requirements
 Requires additional python packages lxml.
 You can install those with easy_install lxml or pip install lxml
 
+Make sure you have libxml2 libxslt libxslt-devel libxml2-devel packages instaleld
+prior to building lxml
+
+yum install libxml2 libxslt libxslt-devel libxml2-devel
+
 It also requires mod_status active in apache and ExtendedStatus On
 
 ApTop will look for /etc/aptop.conf or ~/.aptop.conf for configuration options
@@ -38,3 +43,13 @@ refresh = seconds
 This option will control ApTop default refresh interval. It defaults 
 to 5 seconds and can't be lower than 1 second. 
 
+Runtime options
+===============
+
+While running ApTop responds to following options:
+
+i - toggle active/inactive slots
+r - reverse the current sort order
+v - display vhost connections
+c - display client connections
+d - display dashboard

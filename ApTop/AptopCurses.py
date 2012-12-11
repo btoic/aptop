@@ -20,14 +20,11 @@ class AptopCurses(object):
 		self.refresh = self.aptop.refresh_rate()
 		self.counter = 0
 		self.BODY_H = self.MAX_H
-		self.view = 'V'
+		self.view = 'D'
 		curses.wrapper(self.start)
 
 
 	def start(self, stdscr):
-		curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-		curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
-		curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
 		if self.aptop.verify_mod_status():
 			while 1:
 				self.aptop.fetch_status()
@@ -38,7 +35,12 @@ class AptopCurses(object):
 					self.view = 'V'
 				elif c == ord('d') or c == ord('D'):
 					self.view = 'D'
-
+				elif c == ord('c') or c == ord('C'):
+					self.view = 'C'
+				elif c == ord('i') or c == ord('I'):
+					self.aptop.togle_active()
+				elif c == ord('r') or c == ord('R'):
+					self.aptop.reverse_order()
 				self.draw_view()
 		else:
 			print "Apache not running or wrong mod_status url!"
@@ -51,6 +53,8 @@ class AptopCurses(object):
 			self.draw_vhosts()
 		elif self.view == 'D':
 			self.draw_dashboard()
+		elif self.view == 'C':
+			self.draw_clients()
 		else:
 			print "something went wrong"
 			sys.exit(1)
@@ -73,7 +77,10 @@ class AptopCurses(object):
 		header_data = self.aptop.parse_header()
 		hcount = 0
 		for header_line in header_data:
-			header.addstr(hcount, 1, str(header_line[:self.MAX_W - 2]))
+			try:
+				header.addstr(hcount, 1, str(header_line[:self.MAX_W - 2]))
+			except curses.error:
+				pass
 			hcount += 1
 		header.refresh()
 
@@ -86,15 +93,26 @@ class AptopCurses(object):
 							)
 
 		dash_data = self.aptop.display_vhosts(self.aptop.parse_vhosts())
-		dcount = 1
-		dash.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
-		dash.addstr(dcount, 1, str('Virtualhost'), curses.A_BOLD)
-		dash.addstr(dcount, 25, str('Client'), curses.A_BOLD)
+		dcount = 0
+		try:
+			formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %-50s' % (
+				'PID', 'M', 'CPU', 'SS', 'Req', 'Conn', 'Acc', 'Client', 'VHost',
+				'Request' + ' ' * self.MAX_W)
+
+			dash.addstr(0, 0, formatstr, curses.A_REVERSE)
+		except curses.error:
+			pass
 		for dash_line in dash_data:
 			dcount += 1
-			if dcount < self.BODY_H:
-				dash.addstr(dcount, 1, str(dash_line['VHost']))
-				dash.addstr(dcount, 25, str(dash_line['Client']))
+			try:
+				formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % (
+				dash_line['PID'], dash_line['M'], dash_line['CPU'],
+				dash_line['SS'], dash_line['Req'], dash_line['Conn'],
+				dash_line['Acc'], dash_line['Client'], dash_line['VHost'][:26],
+				dash_line['Request'])
+				dash.addstr(dcount, 0, formatstr)
+			except curses.error:
+				pass
 		dash.refresh()
 
 	def draw_vhosts(self):
@@ -106,15 +124,45 @@ class AptopCurses(object):
 							)
 
 		body_data = self.aptop.count_by_vhost(self.aptop.parse_vhosts())
-		bcount = 1
-		body.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
-		body.addstr(1, 1, 'Num req', curses.A_BOLD)
-		body.addstr(1, 20, "Virtualhost", curses.A_BOLD)
+		bcount = 0
+		try:
+			body.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
+			body.addstr(bcount, 1, 'Num req', curses.A_REVERSE)
+			body.addstr(bcount, 20, "Virtualhost", curses.A_REVERSE)
+		except curses.error:
+			pass
 		for body_line in body_data:
 			bcount += 1
-			if bcount < self.BODY_H:
+			try:
 				body.addstr(bcount, 1, str(body_line[1]))
 				body.addstr(bcount, 20, str(body_line[0]))
+			except curses.error:
+				pass
+		body.refresh()
+
+	def draw_clients(self):
+		""" draws a vhosts window """
+		body = curses.newwin(
+							self.BODY_H,
+							self.MAX_W,
+							HEADER_HEIGHT, 0
+							)
+
+		body_data = self.aptop.count_by_client(self.aptop.parse_vhosts())
+		bcount = 0
+		try:
+			body.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
+			body.addstr(bcount, 1, 'Num req', curses.A_REVERSE)
+			body.addstr(bcount, 20, "Client IP", curses.A_REVERSE)
+		except curses.error:
+			pass
+		for body_line in body_data:
+			bcount += 1
+			try:
+				body.addstr(bcount, 1, str(body_line[1]))
+				body.addstr(bcount, 20, str(body_line[0]))
+			except curses.error:
+				pass
 		body.refresh()
 
 	def draw_footer(self):
@@ -124,11 +172,16 @@ class AptopCurses(object):
 								self.MAX_W,
 								self.MAX_H - FOOTER_HEIGHT, 0
 								)
-		footer.addstr(1, 1, 'Q')
-		footer.addstr(1, 3, ' Quit ApTOP', curses.A_REVERSE)
-		footer.addstr(1, 15, 'D')
-		footer.addstr(1, 17, ' Dashbord', curses.A_REVERSE)
-		footer.addstr(1, 27, 'V')
-		footer.addstr(1, 29, ' By Vhost', curses.A_REVERSE)
+		try:
+			footer.addstr(1, 1, 'Q')
+			footer.addstr(1, 3, 'Quit ApTOP', curses.A_REVERSE)
+			footer.addstr(1, 14, 'D')
+			footer.addstr(1, 16, 'Dashbord', curses.A_REVERSE)
+			footer.addstr(1, 26, 'V')
+			footer.addstr(1, 28, 'By Vhost', curses.A_REVERSE)
+			footer.addstr(1, 37, 'C')
+			footer.addstr(1, 39, 'By Client', curses.A_REVERSE)
+		except curses.error:
+			pass
 		footer.refresh()
 

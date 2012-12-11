@@ -4,7 +4,6 @@ __version__ = "0.2.0a"
 
 import ConfigParser
 import os
-import re
 import sys
 from operator import itemgetter
 
@@ -14,7 +13,7 @@ Now lets import some dependencies and check their versions
 We need at least version 3.0.7a of BeautifulSoup
 """
 try:
-    import lxml.html
+    import lxml.html #@UnresolvedImport
 except:
     print "No lxml package found..."
     print "please install lxml >= 3.x.x"
@@ -51,12 +50,25 @@ class ApacheStatus(object):
             except:
                 self.status_url = 'http://localhost/server-status'
                 self.refresh = '5'
-        self.r = re.compile('<table border="0">(.*?)</table>')
         try:
             self.tree = lxml.html.parse(self.status_url)
         except:
             print "Apache not running?"
             sys.exit(1)
+
+        # define should we filter out inactive sessions
+        self.active = True
+        self.sort_by = 'SS'
+        # this is passed to reverse parameter on sort(list)
+        self.sort_order = False
+
+    def reverse_order(self):
+        """ just reverese the ordering of current sorting """
+
+        if self.sort_order:
+            self.sort_order = False
+        else:
+            self.sort_order = True
 
     def refresh_rate(self):
         """
@@ -97,7 +109,10 @@ class ApacheStatus(object):
         list of tuples containing vhost name and number of active connections
         """
         vstatus = {}
-        vhosts = self.filter_active(data)
+        if self.active:
+            vhosts = self.filter_active(data)
+        else:
+            vhosts = data
         for status in vhosts:
             if status['VHost'] in vstatus:
                 vstatus[status['VHost']] += 1
@@ -108,11 +123,40 @@ class ApacheStatus(object):
 
         return items
 
+    def count_by_client(self, data):
+        """
+        (str) -> list of tuple
+        
+        Counts the active concurent connections by clients and returns an ordered
+        list of tuples containing client IP and number of active connections
+        """
+        cstatus = {}
+        if self.active:
+            vhosts = self.filter_active(data)
+        else:
+            vhosts = data
+        for status in vhosts:
+            if status['Client'] in cstatus:
+                cstatus[status['Client']] += 1
+            else:
+                cstatus[status['Client']] = 1
+        items = cstatus.items()
+        items.sort(key=itemgetter(1), reverse=True)
+
+        return items
+
+    def togle_active(self):
+        if self.active:
+            self.active = False
+        else:
+            self.active = True
+
+
     def filter_active(self, data):
         """
         (list of dict) -> list of dict
         
-        Returns filtered list of active connections
+        Returns list of dicts based on filter status
         
         """
         filtered = []
@@ -126,10 +170,13 @@ class ApacheStatus(object):
     def display_vhosts(self, data):
         """
         (list of dict) -> list of dict
-        display only filtered list of vhost statuses
+        retrurn vhost data as list of dicts based on current filter 
         """
-
-        return self.filter_active(data)
+        if self.active:
+            results = self.filter_active(data)
+        else:
+            results = data
+        return results
 
 
     def parse_vhosts(self):
@@ -141,16 +188,17 @@ class ApacheStatus(object):
         mod_status
         
         """
-        m = self.r.search(lxml.html.tostring(self.tree).replace('\n', ''))
-        s = '<table>' + m.group(1) + '</table>'
-        tree = lxml.html.fromstring(s)
+        tree = self.tree.xpath('//table[@border="0"]')[0]
         vhost_status = []
         headers = tree.findall('.//th')
-        h2 = [s.text for s in headers]
+        h2 = [s.text_content().replace('\n', '') for s in headers]
         for row in tree.findall('.//tr')[1:]: # this is header, excluding
-            d = [s.text for s in row.findall('.//td')]
+            d = [s.text_content().replace('\n', '') for s in row.findall('.//td')]
             vhost_status.append(dict(zip(h2, d)))
-        return vhost_status
+
+        return sorted(vhost_status,
+                      key=lambda k: float(k[self.sort_by]),
+                      reverse=self.sort_order)
 
     def parse_header(self):
         """
