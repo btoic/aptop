@@ -37,7 +37,10 @@ class ApacheStatus(object):
         Let's populate some defaults if no config file is found
         """
         if not self.configfile:
-            self.status_url = 'http://localhost/server-status'
+            if os.path.isdir('/var/cpanel'):
+                self.status_url = 'http://localhost/whm-server-status'
+            else:
+                self.status_url = 'http://localhost/server-status'
             self.refresh = '5'
         else:
             config = ConfigParser.ConfigParser()
@@ -46,7 +49,10 @@ class ApacheStatus(object):
                 self.status_url = config.get('aptop', 'status_url')
                 self.refresh = config.get('aptop', 'refresh')
             except:
-                self.status_url = 'http://localhost/server-status'
+                if os.path.isdir('/var/cpanel'):
+                    self.status_url = 'http://localhost/whm-server-status'
+                else:
+                    self.status_url = 'http://localhost/server-status'
                 self.refresh = '5'
         try:
             self.tree = lxml.html.parse(self.status_url)
