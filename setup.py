@@ -10,7 +10,7 @@ def runSetup ():
           version='0.2.1b',
           author='Branko Toic' ,
           author_email='branko@toic.org' ,
-          url='http://toic.org' ,
+          url='https://bitbucket.org/btoic/aptop/get/master.tar.gz' ,
           license='GPLv2' ,
           install_requires=['lxml'],
           setup_requires=['lxml'],
@@ -19,6 +19,7 @@ def runSetup ():
               ' apache mod_status' ,
           packages=find_packages(),
           scripts=['aptop.py'],
+          provides=['ApTop'],
     )
 
 if __name__ == '__main__':
