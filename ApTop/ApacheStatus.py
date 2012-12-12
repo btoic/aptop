@@ -51,7 +51,7 @@ class ApacheStatus(object):
         try:
             self.tree = lxml.html.parse(self.status_url)
         except:
-            print "Apache not running?"
+            print "Apache not running or wrong mod_status url!?"
             sys.exit(1)
 
         # define should we filter out inactive sessions
