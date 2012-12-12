@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.2.0a"
+__version__ = "0.2.1b"
 
 import curses
 import time
@@ -20,7 +20,7 @@ class AptopCurses(object):
 		self.refresh = self.aptop.refresh_rate()
 		self.counter = 0
 		self.BODY_H = self.MAX_H
-		self.view = 'D'
+		self.view = 'H'
 		curses.wrapper(self.start)
 
 
@@ -33,8 +33,8 @@ class AptopCurses(object):
 				if c == ord('q') or c == ord('Q'): break
 				elif c == ord('v') or c == ord('V'):
 					self.view = 'V'
-				elif c == ord('d') or c == ord('D'):
-					self.view = 'D'
+				elif c == ord('h') or c == ord('H'):
+					self.view = 'H'
 				elif c == ord('c') or c == ord('C'):
 					self.view = 'C'
 				elif c == ord('i') or c == ord('I'):
@@ -51,7 +51,7 @@ class AptopCurses(object):
 
 		if self.view == 'V':
 			self.draw_vhosts()
-		elif self.view == 'D':
+		elif self.view == 'H':
 			self.draw_dashboard()
 		elif self.view == 'C':
 			self.draw_clients()
@@ -62,7 +62,8 @@ class AptopCurses(object):
 		self.iterate()
 
 	def iterate(self):
-		time.sleep(self.refresh)
+		curses.napms(self.refresh * 1000)
+		#time.sleep(self.refresh)
 		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
 
 
@@ -175,8 +176,8 @@ class AptopCurses(object):
 		try:
 			footer.addstr(1, 1, 'Q')
 			footer.addstr(1, 3, 'Quit ApTOP', curses.A_REVERSE)
-			footer.addstr(1, 14, 'D')
-			footer.addstr(1, 16, 'Dashbord', curses.A_REVERSE)
+			footer.addstr(1, 14, 'H')
+			footer.addstr(1, 16, 'Home', curses.A_REVERSE)
 			footer.addstr(1, 26, 'V')
 			footer.addstr(1, 28, 'By Vhost', curses.A_REVERSE)
 			footer.addstr(1, 37, 'C')

@@ -1,18 +1,19 @@
 Metadata-Version: 1.1
 Name: ApTop
-Version: 0.2.0a
+Version: 0.2.1b
 Author: Branko Toic
 Author-email: branko at toic org
 Maintainer: Branko Toic
 Maintainer-email: branko at toic org
 Home-page: http://toic.org
+Download-url: https://bitbucket.org/btoic/aptop/get/master.tar.gz
 Summary: Apache top(1) like monitoring tool
 License: GPLv2
 Description: ApTop is top like clone for apaache geting info from apache mod_status
 Keywords: apache top monitoring virtualhosts
 Platform: unix
 Requires: lxml
-Provides: ApacheStatus
+Provides: ApTop
 Classifier: Development Status :: 2 - Pre-Alpha
 Classifier: Intended Audience :: System Administrators
 Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
