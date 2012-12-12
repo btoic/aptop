@@ -81,6 +81,10 @@ These installation options are for RHEL based distros, adjust accordingly.
 
 yum install libxml2 libxslt libxslt-devel libxml2-devel python-setuptools
 
+easy_install ApTop
+
+or
+
 easy_install https://bitbucket.org/btoic/aptop/get/master.tar.gz
 
 You can now run aptop.py
