@@ -20,7 +20,6 @@ class AptopCurses(object):
 
                 self.running = True
 
-
                 self.draw_view_keys = {
                   'V': self.draw_vhosts,
                   'H': self.draw_dashboard,
@@ -73,7 +72,6 @@ class AptopCurses(object):
 		curses.napms(self.refresh * 1000)
 		#time.sleep(self.refresh)
 		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
-
 
 
 	def draw_header(self):
