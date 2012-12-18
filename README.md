@@ -134,6 +134,7 @@ While running ApTop responds to following options:
 
 **I** - toggle active/inactive slots
 
+**D** - change the refresh rate
 
 Aditional links
 ---------------

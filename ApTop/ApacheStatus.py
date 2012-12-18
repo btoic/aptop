@@ -1,17 +1,12 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.2.1b"
+__version__ = "0.2.2b"
 
 import ConfigParser
 import os
 import sys
 from operator import itemgetter
 
-
-"""
-Now lets import some dependencies and check their versions
-We need at least version 3.0.7a of BeautifulSoup
-"""
 try:
     import lxml.html #@UnresolvedImport
 except:
@@ -47,12 +42,14 @@ class ApacheStatus(object):
             config.readfp(open(self.configfile))
             try:
                 self.status_url = config.get('aptop', 'status_url')
-                self.refresh = config.get('aptop', 'refresh')
             except:
                 if os.path.isdir('/var/cpanel'):
                     self.status_url = 'http://localhost/whm-server-status'
                 else:
                     self.status_url = 'http://localhost/server-status'
+            try:
+                self.refresh = config.get('aptop', 'refresh')
+            except:
                 self.refresh = '5'
         try:
             self.tree = lxml.html.parse(self.status_url)

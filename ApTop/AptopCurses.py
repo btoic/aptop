@@ -1,9 +1,8 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.2.1b"
+__version__ = "0.2.2b"
 
 import curses
-import time
 import sys
 
 HEADER_HEIGHT = 10
@@ -25,7 +24,8 @@ class AptopCurses(object):
 		self.handle_view_keys = {
 			'I': self.aptop.togle_active,
 			'R': self.aptop.reverse_order,
-		  	'Q': self.aptop_stop
+		  	'Q': self.aptop_stop,
+		  	'D': self.draw_update_refresh,
 								}
 
 		self.stdscr.nodelay(1)
@@ -57,6 +57,37 @@ class AptopCurses(object):
 		""" calling this will halt aptop"""
 		if self.running:
 			self.running = False
+
+	def draw_update_refresh(self):
+		ref = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
+
+		running = True
+
+		ref.addstr(10, 10, str('New refresh time in sec?'))
+		#input handling
+		acumulate = ''
+		while running:
+			c = self.stdscr.getch()
+			if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
+				try:
+					ref.addstr(12, 40, str('Not a valid input'))
+					refresh = int(acumulate)
+					self.refresh = refresh
+					running = False
+				except:
+					ref.addstr(10, 35, str(' ') * len(acumulate))
+					acumulate = ''
+			else:
+
+				if c in range(255):
+					try:
+						acumulate += chr(c)
+						ref.addstr(10, 35, str(acumulate))
+						ref.addstr(12, 35, str('                  '))
+					except:
+						pass
+			ref.refresh()
+		#close input and exit the loop
 
 	def draw_view(self):
 		self.draw_header()
