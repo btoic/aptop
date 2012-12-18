@@ -60,6 +60,12 @@ class ApacheStatus(object):
         # define should we filter out inactive sessions
         self.active = True
         self.sort_by = 'SS'
+        self.sort_fields = {'SS': 'float',
+                            'CPU': 'float',
+                            'Req': 'float',
+                            'Conn': 'float',
+                            'VHost': 'str'
+                            }
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
 
@@ -153,6 +159,14 @@ class ApacheStatus(object):
             self.active = True
 
 
+    def update_sort_field(self, field):
+        #should be rewriten to include case insensitive input
+        if field in self.sort_fields:
+            self.sort_by = field
+            return True
+        else:
+            return False
+
     def filter_active(self, data):
         """
         (list of dict) -> list of dict
@@ -179,6 +193,14 @@ class ApacheStatus(object):
             results = data
         return results
 
+    def sort_vhosts_by(self, values, sort_method):
+
+        if sort_method == 'float':
+            return sorted(values, key=lambda k: float(k[self.sort_by]),
+                      reverse=self.sort_order)
+        elif sort_method == 'str':
+            return sorted(values, key=lambda k: str(k[self.sort_by]),
+                      reverse=self.sort_order)
 
     def parse_vhosts(self):
         """
@@ -197,9 +219,7 @@ class ApacheStatus(object):
             d = [s.text_content().replace('\n', '') for s in row.findall('.//td')]
             vhost_status.append(dict(zip(h2, d)))
 
-        return sorted(vhost_status,
-                      key=lambda k: float(k[self.sort_by]),
-                      reverse=self.sort_order)
+        return self.sort_vhosts_by(vhost_status, self.sort_fields[self.sort_by])
 
     def parse_header(self):
         """

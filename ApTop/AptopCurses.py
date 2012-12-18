@@ -26,6 +26,7 @@ class AptopCurses(object):
 			'R': self.aptop.reverse_order,
 		  	'Q': self.aptop_stop,
 		  	'D': self.draw_update_refresh,
+		  	'O': self.draw_update_order,
 								}
 
 		self.stdscr.nodelay(1)
@@ -88,6 +89,38 @@ class AptopCurses(object):
 						pass
 			ref.refresh()
 		#close input and exit the loop
+
+
+	def draw_update_order(self):
+		order = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
+
+		running = True
+
+		order.addstr(10, 10, str('Type new ordering field?'))
+		#input handling
+		acumulate = ''
+		while running:
+			c = self.stdscr.getch()
+			if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
+				try:
+					order.addstr(12, 40, str('Not a valid input'))
+					self.aptop.update_sort_field(acumulate)
+					running = False
+				except:
+					order.addstr(10, 35, str(' ') * len(acumulate))
+					acumulate = ''
+			else:
+
+				if c in range(255):
+					try:
+						acumulate += chr(c)
+						order.addstr(10, 35, str(acumulate))
+						order.addstr(12, 35, str('                  '))
+					except:
+						pass
+			order.refresh()
+		#close input and exit the loop
+
 
 	def draw_view(self):
 		self.draw_header()
