@@ -9,25 +9,24 @@ import sys
 HEADER_HEIGHT = 10
 FOOTER_HEIGHT = 2
 
-key_map = ['Q', 'V', 'H', 'C']
-
 class AptopCurses(object):
 	def __init__(self, aptop):
 
 		self.stdscr = curses.initscr()
 		self.aptop = aptop
 		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
+		self.running = True
+		self.draw_view_keys = {
+			'V': self.draw_vhosts,
+		  	'H': self.draw_dashboard,
+		  	'C': self.draw_clients,
+		  						}
 
-                self.running = True
-
-                self.draw_view_keys = {
-                  'V': self.draw_vhosts,
-                  'H': self.draw_dashboard,
-                  'C': self.draw_clients,
-                  'I': self.aptop.togle_active,
-                  'R': self.aptop.reverse_order,
-                  'Q': self.aptop_running
-                }
+		self.handle_view_keys = {
+			'I': self.aptop.togle_active,
+			'R': self.aptop.reverse_order,
+		  	'Q': self.aptop_stop
+								}
 
 		self.stdscr.nodelay(1)
 		self.refresh = self.aptop.refresh_rate()
@@ -39,38 +38,35 @@ class AptopCurses(object):
 
 	def start(self, stdscr):
 		if self.aptop.verify_mod_status():
-                        while self.running:
-                                self.aptop.fetch_status()
-                                self.BODY_H = self.MAX_H - HEADER_HEIGHT - FOOTER_HEIGHT
-                                c = self.stdscr.getch()
-                                if c in range(255):
-                                    for key in key_map:
-                                        if str.upper(chr(c)) == key:
-                                            self.view = key
-                                self.draw_view()
-
-                else:
+			while self.running:
+				self.aptop.fetch_status()
+				self.BODY_H = self.MAX_H - HEADER_HEIGHT - FOOTER_HEIGHT
+				c = self.stdscr.getch()
+				if c in range(255):
+					key = str.upper(chr(c))
+					if key in self.draw_view_keys:
+						self.view = key
+					elif key in self.handle_view_keys:
+						self.handle_view_keys[key]()
+				self.draw_view()
+		else:
 			print "Apache not running or wrong mod_status url!"
 			sys.exit(1)
 
-        def aptop_running(self):
-            if self.running:
-                self.running = False
+	def aptop_stop(self):
+		""" calling this will halt aptop"""
+		if self.running:
+			self.running = False
 
 	def draw_view(self):
 		self.draw_header()
-
-                if self.view in self.draw_view_keys:
-                    self.draw_view_keys[self.view]()
-    		else:
-			print "something went wrong"
-			sys.exit(1)
+		# already filtered in the main loop
+		self.draw_view_keys[self.view]()
 		self.draw_footer()
 		self.iterate()
 
 	def iterate(self):
 		curses.napms(self.refresh * 1000)
-		#time.sleep(self.refresh)
 		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
 
 
