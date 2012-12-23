@@ -47,17 +47,38 @@ class AptopCurses(object):
 					key = str.upper(chr(c))
 					if key in self.draw_view_keys:
 						self.view = key
+						self.counter = 0
 					elif key in self.handle_view_keys:
 						self.handle_view_keys[key]()
-				self.draw_view()
+				self.iterate()
 		else:
 			print "Apache not running or wrong mod_status url!"
 			sys.exit(1)
+
+	def draw_view(self):
+		self.draw_header()
+		# already filtered in the main loop
+		self.draw_view_keys[self.view]()
+		self.draw_footer()
+
+
+	def iterate(self):
+		if self.counter == 0:
+			self.draw_view()
+			self.counter = self.refresh * 2
+		else:
+			self.counter -= 1
+
+		curses.napms(500)
+		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
 
 	def aptop_stop(self):
 		""" calling this will halt aptop"""
 		if self.running:
 			self.running = False
+
+
+	""" Drawing output """
 
 	def draw_update_refresh(self):
 		ref = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
@@ -65,7 +86,7 @@ class AptopCurses(object):
 		running = True
 
 		ref.addstr(10, 10, str('New refresh time in sec?'))
-		#input handling
+		# input handling
 		acumulate = ''
 		while running:
 			c = self.stdscr.getch()
@@ -88,7 +109,7 @@ class AptopCurses(object):
 					except:
 						pass
 			ref.refresh()
-		#close input and exit the loop
+		# close input and exit the loop
 
 
 	def draw_update_order(self):
@@ -97,7 +118,7 @@ class AptopCurses(object):
 		running = True
 
 		order.addstr(10, 10, str('Type new ordering field?'))
-		#input handling
+		# input handling
 		acumulate = ''
 		while running:
 			c = self.stdscr.getch()
@@ -119,20 +140,7 @@ class AptopCurses(object):
 					except:
 						pass
 			order.refresh()
-		#close input and exit the loop
-
-
-	def draw_view(self):
-		self.draw_header()
-		# already filtered in the main loop
-		self.draw_view_keys[self.view]()
-		self.draw_footer()
-		self.iterate()
-
-	def iterate(self):
-		curses.napms(self.refresh * 1000)
-		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
-
+		# close input and exit the loop
 
 	def draw_header(self):
 		""" draws a header window """
