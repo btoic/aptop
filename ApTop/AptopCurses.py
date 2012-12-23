@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
-__date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.2.2b"
+__date__ = "Dec 24, 2012 0:10 PM$"
+__version__ = "0.2.3b"
 
 import curses
 import sys
@@ -47,9 +47,9 @@ class AptopCurses(object):
 					key = str.upper(chr(c))
 					if key in self.draw_view_keys:
 						self.view = key
-						self.counter = 0
 					elif key in self.handle_view_keys:
 						self.handle_view_keys[key]()
+					self.counter = 0
 				self.iterate()
 		else:
 			print "Apache not running or wrong mod_status url!"
@@ -92,20 +92,22 @@ class AptopCurses(object):
 			c = self.stdscr.getch()
 			if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
 				try:
-					ref.addstr(12, 40, str('Not a valid input'))
 					refresh = int(acumulate)
 					self.refresh = refresh
 					running = False
 				except:
-					ref.addstr(10, 35, str(' ') * len(acumulate))
+					ref.addstr(12, 40, str('Not a valid input'))
+					ref.addstr(10, 35, str(' ') * (len(acumulate) + 20))
+					ref.addstr(10, 34, str(' '))
 					acumulate = ''
 			else:
 
 				if c in range(255):
+					if len(acumulate) < 1:
+						ref.addstr(12, 40, str('                  '))
 					try:
 						acumulate += chr(c)
 						ref.addstr(10, 35, str(acumulate))
-						ref.addstr(12, 35, str('                  '))
 					except:
 						pass
 			ref.refresh()
@@ -116,6 +118,16 @@ class AptopCurses(object):
 		order = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
 
 		running = True
+		current = self.aptop.sort_options()
+		order.addstr(1, 10, 'Available options are')
+		opcount = 2
+		for option in current[1]:
+			if current[0] == option:
+				order.addstr(opcount, 5, '*')
+				order.addstr(opcount, 10, str(option))
+			else:
+				order.addstr(opcount, 10, str(option))
+			opcount += 1
 
 		order.addstr(10, 10, str('Type new ordering field?'))
 		# input handling
@@ -123,20 +135,22 @@ class AptopCurses(object):
 		while running:
 			c = self.stdscr.getch()
 			if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
-				try:
-					order.addstr(12, 40, str('Not a valid input'))
-					self.aptop.update_sort_field(acumulate)
+				if self.aptop.update_sort_field(acumulate):
 					running = False
-				except:
-					order.addstr(10, 35, str(' ') * len(acumulate))
+				else:
+					order.addstr(12, 40, str('Not a valid input'))
+					order.addstr(10, 35, str(' ') * (len(acumulate) + 20))
+					order.addstr(10, 34, str(' '))
 					acumulate = ''
 			else:
 
 				if c in range(255):
+					if len(acumulate) < 1:
+						order.addstr(12, 40, str('                  '))
 					try:
 						acumulate += chr(c)
 						order.addstr(10, 35, str(acumulate))
-						order.addstr(12, 35, str('                  '))
+
 					except:
 						pass
 			order.refresh()

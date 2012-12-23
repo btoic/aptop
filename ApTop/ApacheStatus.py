@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
-__date__ = "Dec 9, 2012 2:00 PM$"
-__version__ = "0.2.2b"
+__date__ = "Dec 24, 2012 0:10 PM$"
+__version__ = "0.2.3b"
 
 import ConfigParser
 import os
@@ -8,7 +8,7 @@ import sys
 from operator import itemgetter
 
 try:
-    import lxml.html #@UnresolvedImport
+    import lxml.html  # @UnresolvedImport
 except:
     print "No lxml package found..."
     print "please install lxml >= 3.x.x"
@@ -60,6 +60,7 @@ class ApacheStatus(object):
         # define should we filter out inactive sessions
         self.active = True
         self.sort_by = 'SS'
+        # key case must be defined exactly as named in data source
         self.sort_fields = {'SS': 'float',
                             'CPU': 'float',
                             'Req': 'float',
@@ -68,6 +69,14 @@ class ApacheStatus(object):
                             }
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
+
+
+    def sort_options(self):
+        """ (NoneType) -> list of string and dict
+       
+           Returns the current self.sort_fields and self.sort_by variable
+        """
+        return [self.sort_by, self.sort_fields]
 
     def reverse_order(self):
         """ just reverese the ordering of current sorting """
@@ -160,12 +169,11 @@ class ApacheStatus(object):
 
 
     def update_sort_field(self, field):
-        #should be rewriten to include case insensitive input
-        if field in self.sort_fields:
-            self.sort_by = field
-            return True
-        else:
-            return False
+        for key in self.sort_fields:
+            if field.lower() == key.lower():
+                self.sort_by = key
+                return True
+        return False
 
     def filter_active(self, data):
         """
@@ -215,7 +223,7 @@ class ApacheStatus(object):
         vhost_status = []
         headers = tree.findall('.//th')
         h2 = [s.text_content().replace('\n', '') for s in headers]
-        for row in tree.findall('.//tr')[1:]: # this is header, excluding
+        for row in tree.findall('.//tr')[1:]:  # this is header, excluding
             d = [s.text_content().replace('\n', '') for s in row.findall('.//td')]
             vhost_status.append(dict(zip(h2, d)))
 

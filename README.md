@@ -136,6 +136,8 @@ While running ApTop responds to following options:
 
 **D** - change the refresh rate
 
+**O** - change sort field
+
 Aditional links
 ---------------
 

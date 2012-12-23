@@ -1,0 +1,5 @@
+New features in version 0.2.3b
+
+Added in program supprt for changing refresh rate - D key
+Added in program support for changing sort field - O key
+Some minor bug fixes and optimizations
