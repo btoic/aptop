@@ -3,6 +3,7 @@ __date__ = "Dec 24, 2012 0:10 PM$"
 __version__ = "0.2.3b"
 
 import curses
+from _curses import error as CursesError
 import sys
 
 HEADER_HEIGHT = 10
@@ -12,6 +13,21 @@ class AptopCurses(object):
 	def __init__(self, aptop):
 
 		self.stdscr = curses.initscr()
+		curses.noecho()
+		curses.nonl()
+		curses.raw()
+		# Some terminals don't support different cursor visibilities
+		try:
+			curses.curs_set(0)
+		except CursesError:
+			pass
+
+		# Some terminals don't support the default color palette
+		try:
+			curses.start_color()
+			curses.use_default_colors()
+		except CursesError:
+			pass
 		self.aptop = aptop
 		self.MAX_H, self.MAX_W = self.stdscr.getmaxyx()
 		self.running = True
