@@ -35,6 +35,7 @@ class AptopCurses(object):
 			'V': self.draw_vhosts,
 		  	'H': self.draw_dashboard,
 		  	'C': self.draw_clients,
+            'U': self.draw_requests,
 		  						}
 
 		self.handle_view_keys = {
@@ -270,6 +271,31 @@ class AptopCurses(object):
 				pass
 		body.refresh()
 
+	def draw_requests(self):
+		""" draws a requests window """
+		body = curses.newwin(
+							self.BODY_H,
+							self.MAX_W,
+							HEADER_HEIGHT, 0
+							)
+
+		body_data = self.aptop.count_by_request(self.aptop.parse_vhosts())
+		bcount = 0
+		try:
+			body.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
+			body.addstr(bcount, 1, 'Num req', curses.A_REVERSE)
+			body.addstr(bcount, 20, 'URI', curses.A_REVERSE)
+		except curses.error:
+			pass
+		for body_line in body_data:
+			bcount += 1
+			try:
+				body.addstr(bcount, 1, str(body_line[1]))
+				body.addstr(bcount, 20, str(body_line[0]))
+			except curses.error:
+				pass
+		body.refresh()
+
 	def draw_footer(self):
 		""" draws a footer window """
 		footer = curses.newwin(
@@ -286,6 +312,8 @@ class AptopCurses(object):
 			footer.addstr(1, 28, 'By Vhost', curses.A_REVERSE)
 			footer.addstr(1, 37, 'C')
 			footer.addstr(1, 39, 'By Client', curses.A_REVERSE)
+			footer.addstr(1, 50, 'U')
+			footer.addstr(1, 52, 'By URI', curses.A_REVERSE)
 		except curses.error:
 			pass
 		footer.refresh()

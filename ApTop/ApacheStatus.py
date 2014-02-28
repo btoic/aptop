@@ -65,7 +65,8 @@ class ApacheStatus(object):
                             'CPU': 'float',
                             'Req': 'float',
                             'Conn': 'float',
-                            'VHost': 'str'
+                            'VHost': 'str',
+                            'Request': 'str'
                             }
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
@@ -157,6 +158,29 @@ class ApacheStatus(object):
             else:
                 cstatus[status['Client']] = 1
         items = cstatus.items()
+        items.sort(key=itemgetter(1), reverse=True)
+
+        return items
+
+    def count_by_request(self, data):
+        """
+        (str) -> list of tuples
+
+        Counts the active requests and returns an ordered
+        list of tuples containing the request URI and the matching number
+        of active connections
+        """
+        rstatus = {}
+        if self.active:
+            vhosts = self.filter_active(data)
+        else:
+            vhosts = data
+        for status in vhosts:
+            if status['Request'] in rstatus:
+                rstatus[status['Request']] += 1
+            else:
+                rstatus[status['Request']] = 1
+        items = rstatus.items()
         items.sort(key=itemgetter(1), reverse=True)
 
         return items
