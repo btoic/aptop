@@ -128,7 +128,9 @@ While running ApTop responds to following options:
 
 **V** - display vhosts by conn. count
 
-**c** - display clients by conn. count
+**C** - display clients by conn. count
+
+**U** - display count by url
 
 **R** - reverse the current sort order
 
