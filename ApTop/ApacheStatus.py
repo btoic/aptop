@@ -28,7 +28,7 @@ class ApacheStatus(object):
         else:
             self.configfile = None
 
-        """ 
+        """
         Let's populate some defaults if no config file is found
         """
         if not self.configfile:
@@ -73,7 +73,7 @@ class ApacheStatus(object):
 
     def sort_options(self):
         """ (NoneType) -> list of string and dict
-       
+
            Returns the current self.sort_fields and self.sort_by variable
         """
         return [self.sort_by, self.sort_fields]
@@ -89,7 +89,7 @@ class ApacheStatus(object):
     def refresh_rate(self):
         """
         (NoneType) -> int
-        
+
         Returns parsed refresh time interval as int
         """
         return int(self.refresh)
@@ -97,7 +97,7 @@ class ApacheStatus(object):
     def fetch_status(self):
         """
         (NoneType) -> NoneType
-        
+
         Refetching of data
         """
         if self.tree:
@@ -111,7 +111,7 @@ class ApacheStatus(object):
     def verify_mod_status(self):
         """
         (str) -> boolean
-        
+
         Checks the data string for Apache Status title and returns true or
         false
         """
@@ -120,7 +120,7 @@ class ApacheStatus(object):
     def count_by_vhost(self, data):
         """
         (str) -> list of tuple
-        
+
         Counts the active concurent connections by vhosts and returns an ordered
         list of tuples containing vhost name and number of active connections
         """
@@ -142,7 +142,7 @@ class ApacheStatus(object):
     def count_by_client(self, data):
         """
         (str) -> list of tuple
-        
+
         Counts the active concurent connections by clients and returns an ordered
         list of tuples containing client IP and number of active connections
         """
@@ -178,9 +178,9 @@ class ApacheStatus(object):
     def filter_active(self, data):
         """
         (list of dict) -> list of dict
-        
+
         Returns list of dicts based on filter status
-        
+
         """
         filtered = []
 
@@ -193,7 +193,7 @@ class ApacheStatus(object):
     def display_vhosts(self, data):
         """
         (list of dict) -> list of dict
-        retrurn vhost data as list of dicts based on current filter 
+        retrurn vhost data as list of dicts based on current filter
         """
         if self.active:
             results = self.filter_active(data)
@@ -213,11 +213,11 @@ class ApacheStatus(object):
     def parse_vhosts(self):
         """
         (str) -> list of dict
-        
+
         Parses a apache status from internal class self.tree variable
-        and returns list ofdict containing all vhost informations from 
+        and returns list ofdict containing all vhost informations from
         mod_status
-        
+
         """
         tree = self.tree.xpath('//table[@border="0"]')[0]
         vhost_status = []
@@ -232,7 +232,7 @@ class ApacheStatus(object):
     def parse_header(self):
         """
         (NoneType) -> list
-        
+
         Returns a list of header status variables from apache status page
         """
 
