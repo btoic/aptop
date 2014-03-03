@@ -33,18 +33,18 @@ class AptopCurses(object):
 		self.running = True
 		self.draw_view_keys = {
 			'V': self.draw_vhosts,
-		  	'H': self.draw_dashboard,
-		  	'C': self.draw_clients,
-            'U': self.draw_requests,
-		  						}
+			'H': self.draw_dashboard,
+			'C': self.draw_clients,
+			'U': self.draw_vhosts_with_uris
+		}
 
 		self.handle_view_keys = {
 			'I': self.aptop.togle_active,
 			'R': self.aptop.reverse_order,
-		  	'Q': self.aptop_stop,
-		  	'D': self.draw_update_refresh,
-		  	'O': self.draw_update_order,
-								}
+			'Q': self.aptop_stop,
+			'D': self.draw_update_refresh,
+			'O': self.draw_update_order,
+		}
 
 		self.stdscr.nodelay(1)
 		self.refresh = self.aptop.refresh_rate()
@@ -271,29 +271,39 @@ class AptopCurses(object):
 				pass
 		body.refresh()
 
-	def draw_requests(self):
-		""" draws a requests window """
+	def draw_vhosts_with_uris(self):
+		""" draws the 'requests-grouped-by-vhosts' window """
 		body = curses.newwin(
 							self.BODY_H,
 							self.MAX_W,
 							HEADER_HEIGHT, 0
 							)
 
-		body_data = self.aptop.count_by_request(self.aptop.parse_vhosts())
-		bcount = 0
+		body_data = self.aptop.count_and_group_requests_by_vhost(self.aptop.parse_vhosts())
+		linecount = 0
+
 		try:
 			body.addstr(0, 0, str(" ") * self.MAX_W, curses.A_REVERSE)
-			body.addstr(bcount, 1, 'Num req', curses.A_REVERSE)
-			body.addstr(bcount, 20, 'URI', curses.A_REVERSE)
+			body.addstr(linecount, 1, 'Num req', curses.A_REVERSE)
+			body.addstr(linecount, 20, 'URI', curses.A_REVERSE)
 		except curses.error:
 			pass
-		for body_line in body_data:
-			bcount += 1
+
+		for vhost, vhost_data in body_data:
+			linecount += 1
+			requests = vhost_data['reqs']
+			vhost_str = str('>>> ' + vhost + ' (' + str(vhost_data['cnt']) + ')')
+
 			try:
-				body.addstr(bcount, 1, str(body_line[1]))
-				body.addstr(bcount, 20, str(body_line[0]))
+				body.addstr(linecount, 1, vhost_str, curses.A_BOLD)
+				linecount += 1
+				for k, v in requests:
+					body.addstr(linecount, 1, str(v))
+					body.addstr(linecount, 20, str(k))
+					linecount += 1
 			except curses.error:
 				pass
+
 		body.refresh()
 
 	def draw_footer(self):
@@ -313,8 +323,7 @@ class AptopCurses(object):
 			footer.addstr(1, 37, 'C')
 			footer.addstr(1, 39, 'By Client', curses.A_REVERSE)
 			footer.addstr(1, 50, 'U')
-			footer.addstr(1, 52, 'By URI', curses.A_REVERSE)
+			footer.addstr(1, 52, 'By Vhost/URIs', curses.A_REVERSE)
 		except curses.error:
 			pass
 		footer.refresh()
-

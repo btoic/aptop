@@ -162,6 +162,42 @@ class ApacheStatus(object):
 
         return items
 
+    def count_and_group_requests_by_vhost(self, data):
+        """
+        (str) -> list of tuples
+
+        Groups, counts and sorts the requests per vhost.
+        Then sorts the resulting list by the total number of requests per vhost
+        """
+        grouped = {}
+        if self.active:
+            vhosts = self.filter_active(data)
+        else:
+            vhosts = data
+
+        for status in vhosts:
+
+            vhost = status['VHost']
+            req_uri = status['Request']
+
+            if vhost in grouped:
+                if req_uri in grouped[vhost]:
+                    grouped[vhost][req_uri] += 1
+                else:
+                    grouped[vhost][req_uri] = 1
+            else:
+                grouped[vhost] = {}
+                grouped[vhost][req_uri] = 1
+
+        # TODO: not loving this, but it seems to work for now
+        for vhost in grouped:
+            vhost_requests = sorted(grouped[vhost].items(), key=lambda x: (x[1], x[0]), reverse=self.sort_order)
+            count = sum(x[1] for x in vhost_requests)
+            grouped[vhost] = { 'reqs': vhost_requests, 'cnt': count }
+
+        grouped_sorted = sorted(grouped.items(), key=lambda x: (x[1].values()[0], x[0]), reverse=self.sort_order)
+        return grouped_sorted
+
     def count_by_request(self, data):
         """
         (str) -> list of tuples
