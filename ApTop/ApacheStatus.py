@@ -15,6 +15,7 @@ except:
     print "best way to install easy_install lxml"
     sys.exit(1)
 
+
 class ApacheStatus(object):
     def __init__(self):
         """
@@ -71,7 +72,6 @@ class ApacheStatus(object):
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
 
-
     def sort_options(self):
         """ (NoneType) -> list of string and dict
 
@@ -122,8 +122,9 @@ class ApacheStatus(object):
         """
         (str) -> list of tuple
 
-        Counts the active concurent connections by vhosts and returns an ordered
-        list of tuples containing vhost name and number of active connections
+        Counts the active concurent connections by vhosts and returns an
+        ordered list of tuples containing vhost name and number of active
+        connections
         """
         vstatus = {}
         if self.active:
@@ -144,8 +145,9 @@ class ApacheStatus(object):
         """
         (str) -> list of tuple
 
-        Counts the active concurent connections by clients and returns an ordered
-        list of tuples containing client IP and number of active connections
+        Counts the active concurent connections by clients and returns an
+        ordered list of tuples containing client IP and number of active
+        connections
         """
         cstatus = {}
         if self.active:
@@ -167,7 +169,8 @@ class ApacheStatus(object):
         (str) -> list of tuples
 
         Groups, counts and sorts the requests per vhost.
-        Then sorts the resulting list by the total number of requests per vhost
+        Then sorts the resulting list by the total number
+        of requests per vhost
         """
         grouped = {}
         if self.active:
@@ -191,11 +194,19 @@ class ApacheStatus(object):
 
         # TODO: not loving this, but it seems to work for now
         for vhost in grouped:
-            vhost_requests = sorted(grouped[vhost].items(), key=lambda x: (x[1], x[0]), reverse=self.sort_order)
+            vhost_requests = sorted(
+                grouped[vhost].items(),
+                key=lambda x: (x[1], x[0]),
+                reverse=self.sort_order
+            )
             count = sum(x[1] for x in vhost_requests)
-            grouped[vhost] = { 'reqs': vhost_requests, 'cnt': count }
+            grouped[vhost] = {'reqs': vhost_requests, 'cnt': count}
 
-        grouped_sorted = sorted(grouped.items(), key=lambda x: (x[1].values()[0], x[0]), reverse=self.sort_order)
+        grouped_sorted = sorted(
+            grouped.items(),
+            key=lambda x: (x[1].values()[0], x[0]),
+            reverse=self.sort_order
+        )
         return grouped_sorted
 
     def count_by_request(self, data):
@@ -227,7 +238,6 @@ class ApacheStatus(object):
         else:
             self.active = True
 
-
     def update_sort_field(self, field):
         for key in self.sort_fields:
             if field.lower() == key.lower():
@@ -249,7 +259,6 @@ class ApacheStatus(object):
                 filtered.append(status)
         return filtered
 
-
     def display_vhosts(self, data):
         """
         (list of dict) -> list of dict
@@ -264,11 +273,17 @@ class ApacheStatus(object):
     def sort_vhosts_by(self, values, sort_method):
 
         if sort_method == 'float':
-            return sorted(values, key=lambda k: float(k[self.sort_by]),
-                      reverse=self.sort_order)
+            return sorted(
+                values,
+                key=lambda k: float(k[self.sort_by]),
+                reverse=self.sort_order
+            )
         elif sort_method == 'str':
-            return sorted(values, key=lambda k: str(k[self.sort_by]),
-                      reverse=self.sort_order)
+            return sorted(
+                values,
+                key=lambda k: str(k[self.sort_by]),
+                reverse=self.sort_order
+            )
 
     def parse_vhosts(self):
         """
@@ -284,10 +299,16 @@ class ApacheStatus(object):
         headers = tree.findall('.//th')
         h2 = [s.text_content().replace('\n', '') for s in headers]
         for row in tree.findall('.//tr')[1:]:  # this is header, excluding
-            d = [s.text_content().replace('\n', '') for s in row.findall('.//td')]
+            d = [
+                s.text_content().replace('\n', '')
+                for s in row.findall('.//td')
+            ]
             vhost_status.append(dict(zip(h2, d)))
 
-        return self.sort_vhosts_by(vhost_status, self.sort_fields[self.sort_by])
+        return self.sort_vhosts_by(
+            vhost_status,
+            self.sort_fields[self.sort_by]
+        )
 
     def parse_header(self):
         """
@@ -296,5 +317,8 @@ class ApacheStatus(object):
         Returns a list of header status variables from apache status page
         """
 
-        headers = [h.text.replace('\n', '') for h in self.tree.findall('.//dt')]
+        headers = [
+            h.text.replace('\n', '')
+            for h in self.tree.findall('.//dt')
+        ]
         return headers
