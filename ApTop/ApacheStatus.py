@@ -136,7 +136,7 @@ class ApacheStatus(object):
             else:
                 vstatus[status['VHost']] = 1
         items = vstatus.items()
-        items.sort(key=itemgetter(1), reverse=True)
+        items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
 
@@ -158,7 +158,7 @@ class ApacheStatus(object):
             else:
                 cstatus[status['Client']] = 1
         items = cstatus.items()
-        items.sort(key=itemgetter(1), reverse=True)
+        items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
 
@@ -181,7 +181,7 @@ class ApacheStatus(object):
             else:
                 rstatus[status['Request']] = 1
         items = rstatus.items()
-        items.sort(key=itemgetter(1), reverse=True)
+        items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
 
