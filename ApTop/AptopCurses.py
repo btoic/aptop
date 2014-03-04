@@ -15,8 +15,8 @@ class AptopCurses(object):
 
         self.stdscr = curses.initscr()
         curses.noecho()
-        curses.nonl()
         curses.raw()
+        curses.nonl()
         # Some terminals don't support different cursor visibilities
         try:
             curses.curs_set(0)
@@ -103,9 +103,12 @@ class AptopCurses(object):
         ref.addstr(10, 10, str('New refresh time in sec?'))
         # input handling
         acumulate = ''
+        counter = 0
         while running:
+
+            counter += 1
             c = self.stdscr.getch()
-            if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
+            if c in [curses.KEY_ENTER, curses.KEY_BREAK, 13]:
                 try:
                     refresh = int(acumulate)
                     self.refresh = refresh
@@ -147,7 +150,7 @@ class AptopCurses(object):
         acumulate = ''
         while running:
             c = self.stdscr.getch()
-            if c in [curses.KEY_ENTER, curses.KEY_BREAK, 10]:
+            if c in [curses.KEY_ENTER, curses.KEY_BREAK, 13]:
                 if self.aptop.update_sort_field(acumulate):
                     running = False
                 else:
