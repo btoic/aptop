@@ -298,11 +298,14 @@ class ApacheStatus(object):
         vhost_status = []
         headers = tree.findall('.//th')
         h2 = [s.text_content().replace('\n', '') for s in headers]
+        h2.append("Method")
         for row in tree.findall('.//tr')[1:]:  # this is header, excluding
             d = [
                 s.text_content().replace('\n', '')
                 for s in row.findall('.//td')
             ]
+
+            d.append(d[-1].split()[0])
             vhost_status.append(dict(zip(h2, d)))
 
         return self.sort_vhosts_by(
