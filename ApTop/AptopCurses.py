@@ -198,12 +198,18 @@ class AptopCurses(object):
             pass
         for dash_line in dash_data:
             dcount += 1
+            #dirty cpu missing fix for bug #5
+            if 'CPU' in dash_line:
+                cpu_value = dash_line['CPU']
+            else:
+                cpu_value = 'NaN'
+            #end
             try:
                 formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % \
                     (
                         dash_line['PID'],
                         dash_line['M'],
-                        dash_line['CPU'],
+                        cpu_value,
                         dash_line['SS'],
                         dash_line['Req'],
                         dash_line['Conn'],
