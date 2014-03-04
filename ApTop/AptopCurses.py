@@ -199,7 +199,7 @@ class AptopCurses(object):
         for dash_line in dash_data:
             dcount += 1
             #dirty cpu missing fix for bug #5
-            if dash_line['CPU']:
+            if 'CPU' in dash_line:
                 cpu_value = dash_line['CPU']
             else:
                 cpu_value = 'NaN'
