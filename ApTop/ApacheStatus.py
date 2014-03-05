@@ -301,7 +301,7 @@ class ApacheStatus(object):
             results = self.filter_active(data)
         else:
             results = data
-        results = self.filter_http_methods(data)
+        results = self.filter_http_methods(results)
         return results
 
     def sort_vhosts_by(self, values, sort_method):
