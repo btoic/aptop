@@ -174,11 +174,12 @@ class AptopCurses(object):
         """ draws a header window """
 
         SELECTED_HEADERS = [
-            'Server uptime:',
-            'Total Accesses:',
-            'CPU Usage:',
-            'workers',
-            'processed',
+            'Server uptime',
+            'Total accesses',
+            'Total Traffic',
+            'CPU Usage',
+            'working childs',
+            'idle childs',
             'requests/sec',
             'B/second',
             'kB/request',
@@ -189,7 +190,7 @@ class AptopCurses(object):
         hcount = 0
         for item in SELECTED_HEADERS:
             if item in header_data:
-                hline = "%s : %s" % (item, header_data[item])
+                hline = "%s:%s" % (item, header_data[item])
                 try:
                     header.addstr(hcount, 1, str(hline))
                     hcount += 1

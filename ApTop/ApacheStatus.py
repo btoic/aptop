@@ -319,6 +319,23 @@ class ApacheStatus(object):
 
         Returns a dictionary of header status variables from apache status
         page.
+
+        Available header fields:
+           -  Server Version
+           -  Server Built
+           -  Current Time
+           -  Restart Time
+           -  Server uptime
+           -  Parent Server Generation
+           -  CPU Usage
+           -  Total accesses
+           -  Total Traffic
+           -  working childs #requests currently being processed by the server
+           -  idle childs    #idle workers
+           -  requests/sec
+           -  B/second
+           -  kB/request
+
         """
 
         HEADER_LIST = [
@@ -343,11 +360,24 @@ class ApacheStatus(object):
 
                     if item == 'workers':
                         for req in line.split(','):
-                            headers[req.split()[-1]] = req.split()[0]
+                            req = req.strip()
+                            if req.split()[-1] == 'processed':
+                                headers['working childs'] = req.split()[0]
+                            elif req.split()[-1] == 'workers':
+                                headers['idle childs'] = req.split()[0]
                     elif item == 'requests':
                         for req in line.split('-'):
+                            req = req.strip()
                             headers[req.split()[1]] = req.split()[0]
+
+                    elif item == 'Total accesses:':
+                        for el in line.split('-'):
+                            el = el.strip()
+                            key = el.split(':')[0].strip()
+                            value = el.split(':')[1].strip()
+                            headers[key] = value
+
                     else:
-                        headers[item] = line.split(':')[1]
+                        headers[item[:-1]] = line.split(':')[1].strip()
 
         return headers
