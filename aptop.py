@@ -2,7 +2,7 @@
 
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.2.4b"
+__version__ = "0.3.0b"
 
 
 from ApTop import ApacheStatus

@@ -1,12 +1,12 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.2.4b"
+__version__ = "0.3.0b"
 
 import curses
 from _curses import error as CursesError
 import sys
-
-HEADER_HEIGHT = 10
+import os
+HEADER_HEIGHT = 5
 FOOTER_HEIGHT = 2
 
 
@@ -172,15 +172,43 @@ class AptopCurses(object):
 
     def draw_header(self):
         """ draws a header window """
+
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        hcount = 0
-        for header_line in header_data:
-            try:
-                header.addstr(hcount, 1, str(header_line[:self.MAX_W - 2]))
-            except curses.error:
-                pass
-            hcount += 1
+        header1 = "%-5s: %s %1s: %s" % ('System load',
+                                        os.getloadavg()[0],
+                                        'CPU Usage',
+                                        header_data['CPU Usage'],
+                                        )
+        header2 = "%-5s: %s %1s: %s %1s: %s" % (
+            'Total Traffic',
+            header_data['Total Traffic'],
+            'Total accesses',
+            header_data['Total accesses'],
+            'kB/request',
+            header_data['kB/request'],
+        )
+
+        header3 = "%-5s: %s %1s: %s %1s: %s %1s: %s" % (
+            'reqests/sec',
+            header_data['requests/sec'],
+            'busy childs',
+            header_data['working childs'],
+            'idle childs',
+            header_data['idle childs'],
+            'B/second',
+            header_data['B/second'],
+        )
+
+        header4 = "%-5s: %s" % (
+            'Server uptime',
+            header_data['Server uptime'],
+        )
+
+        header.addstr(0, 1, str(header1))
+        header.addstr(1, 1, str(header2))
+        header.addstr(2, 1, str(header3))
+        header.addstr(3, 1, str(header4))
         header.refresh()
 
     def draw_dashboard(self):
@@ -198,12 +226,18 @@ class AptopCurses(object):
             pass
         for dash_line in dash_data:
             dcount += 1
+            #dirty cpu missing fix for bug #5
+            if 'CPU' in dash_line:
+                cpu_value = dash_line['CPU']
+            else:
+                cpu_value = 'NaN'
+            #end
             try:
                 formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % \
                     (
                         dash_line['PID'],
                         dash_line['M'],
-                        dash_line['CPU'],
+                        cpu_value,
                         dash_line['SS'],
                         dash_line['Req'],
                         dash_line['Conn'],

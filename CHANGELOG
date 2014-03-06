@@ -1,3 +1,10 @@
+version 0.3.0b
+
+Few ui bug fixes
+rewriten header display
+apache parser added method field 
+apache header pasrer changed
+
 New features in version 0.2.4b
 
 Added by url view - U key

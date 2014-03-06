@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.2.4b"
+__version__ = "0.3.0b"
 
 import ConfigParser
 import os
@@ -298,11 +298,14 @@ class ApacheStatus(object):
         vhost_status = []
         headers = tree.findall('.//th')
         h2 = [s.text_content().replace('\n', '') for s in headers]
+        h2.append("Method")
         for row in tree.findall('.//tr')[1:]:  # this is header, excluding
             d = [
                 s.text_content().replace('\n', '')
                 for s in row.findall('.//td')
             ]
+
+            d.append(d[-1].split()[0])
             vhost_status.append(dict(zip(h2, d)))
 
         return self.sort_vhosts_by(
@@ -314,11 +317,67 @@ class ApacheStatus(object):
         """
         (NoneType) -> list
 
-        Returns a list of header status variables from apache status page
+        Returns a dictionary of header status variables from apache status
+        page.
+
+        Available header fields:
+           -  Server Version
+           -  Server Built
+           -  Current Time
+           -  Restart Time
+           -  Server uptime
+           -  Parent Server Generation
+           -  CPU Usage
+           -  Total accesses
+           -  Total Traffic
+           -  working childs #requests currently being processed by the server
+           -  idle childs    #idle workers
+           -  requests/sec
+           -  B/second
+           -  kB/request
+
         """
 
-        headers = [
-            h.text.replace('\n', '')
-            for h in self.tree.findall('.//dt')
+        HEADER_LIST = [
+            'Server Version:',
+            'Server Built:',
+            'Current Time:',
+            'Restart Time:',
+            'Parent Server Generation:',
+            'Server uptime:',
+            'Total accesses:',
+            'CPU Usage:',
+            'requests',
+            'workers',
         ]
+
+        headers = {}
+
+        for h in self.tree.findall('.//dt'):
+            line = h.text.replace('\n', '')
+            for item in HEADER_LIST:
+                if item in line:
+
+                    if item == 'workers':
+                        for req in line.split(','):
+                            req = req.strip()
+                            if req.split()[-1] == 'processed':
+                                headers['working childs'] = req.split()[0]
+                            elif req.split()[-1] == 'workers':
+                                headers['idle childs'] = req.split()[0]
+                    elif item == 'requests':
+                        for req in line.split('-'):
+                            req = req.strip()
+                            headers[req.split()[1]] = req.split()[0]
+
+                    elif item == 'Total accesses:':
+                        for el in line.split('-'):
+                            el = el.strip()
+                            key = el.split(':')[0].strip()
+                            value = el.split(':')[1].strip()
+                            headers[key] = value
+
+                    else:
+                        headers[item[:-1]] = line.split(':')[1].strip()
+
         return headers
