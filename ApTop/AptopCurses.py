@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.3.0b"
+__version__ = "0.3.1b"
 
 import curses
 from _curses import error as CursesError
@@ -189,15 +189,13 @@ class AptopCurses(object):
             header_data['kB/request'],
         )
 
-        header3 = "%-5s: %s %1s: %s %1s: %s %1s: %s" % (
+        header3 = "%-5s: %s %1s: %s %1s: %s" % (
             'reqests/sec',
             header_data['requests/sec'],
             'busy childs',
             header_data['working childs'],
             'idle childs',
             header_data['idle childs'],
-            'B/second',
-            header_data['B/second'],
         )
 
         header4 = "%-5s: %s" % (
