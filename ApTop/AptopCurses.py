@@ -172,15 +172,29 @@ class AptopCurses(object):
 
     def draw_header(self):
         """ draws a header window """
+
+        SELECTED_HEADERS = [
+            'Server uptime:',
+            'Total Accesses:',
+            'CPU Usage:',
+            'workers',
+            'processed',
+            'requests/sec',
+            'B/second',
+            'kB/request',
+        ]
+
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
         hcount = 0
-        for header_line in header_data:
-            try:
-                header.addstr(hcount, 1, str(header_line[:self.MAX_W - 2]))
-            except curses.error:
-                pass
-            hcount += 1
+        for item in SELECTED_HEADERS:
+            if item in header_data:
+                hline = "%s : %s" % (item, header_data[item])
+                try:
+                    header.addstr(hcount, 1, str(hline))
+                    hcount += 1
+                except curses.error:
+                    pass
         header.refresh()
 
     def draw_dashboard(self):

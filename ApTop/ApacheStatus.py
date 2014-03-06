@@ -317,11 +317,37 @@ class ApacheStatus(object):
         """
         (NoneType) -> list
 
-        Returns a list of header status variables from apache status page
+        Returns a dictionary of header status variables from apache status
+        page.
         """
 
-        headers = [
-            h.text.replace('\n', '')
-            for h in self.tree.findall('.//dt')
+        HEADER_LIST = [
+            'Server Version:',
+            'Server Built:',
+            'Current Time:',
+            'Restart Time:',
+            'Parent Server Generation:',
+            'Server uptime:',
+            'Total accesses:',
+            'CPU Usage:',
+            'requests',
+            'workers',
         ]
+
+        headers = {}
+
+        for h in self.tree.findall('.//dt'):
+            line = h.text.replace('\n', '')
+            for item in HEADER_LIST:
+                if item in line:
+
+                    if item == 'workers':
+                        for req in line.split(','):
+                            headers[req.split()[-1]] = req.split()[0]
+                    elif item == 'requests':
+                        for req in line.split('-'):
+                            headers[req.split()[1]] = req.split()[0]
+                    else:
+                        headers[item] = line.split(':')[1]
+
         return headers
