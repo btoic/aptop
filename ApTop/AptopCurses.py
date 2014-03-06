@@ -5,8 +5,8 @@ __version__ = "0.2.4b"
 import curses
 from _curses import error as CursesError
 import sys
-
-HEADER_HEIGHT = 10
+import os
+HEADER_HEIGHT = 5
 FOOTER_HEIGHT = 2
 
 
@@ -173,28 +173,42 @@ class AptopCurses(object):
     def draw_header(self):
         """ draws a header window """
 
-        SELECTED_HEADERS = [
-            'Server uptime:',
-            'Total Accesses:',
-            'CPU Usage:',
-            'workers',
-            'processed',
-            'requests/sec',
-            'B/second',
-            'kB/request',
-        ]
-
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        hcount = 0
-        for item in SELECTED_HEADERS:
-            if item in header_data:
-                hline = "%s : %s" % (item, header_data[item])
-                try:
-                    header.addstr(hcount, 1, str(hline))
-                    hcount += 1
-                except curses.error:
-                    pass
+        header1 = "%-5s: %s %1s: %s" % ('System load',
+                                        os.getloadavg()[0],
+                                        'CPU Usage',
+                                        header_data['CPU Usage'],
+                                        )
+        header2 = "%-5s: %s %1s: %s %1s: %s" % (
+            'Total Traffic',
+            header_data['Total Traffic'],
+            'Total accesses',
+            header_data['Total accesses'],
+            'kB/request',
+            header_data['kB/request'],
+        )
+
+        header3 = "%-5s: %s %1s: %s %1s: %s %1s: %s" % (
+            'reqests/sec',
+            header_data['requests/sec'],
+            'busy childs',
+            header_data['working childs'],
+            'idle childs',
+            header_data['idle childs'],
+            'B/second',
+            header_data['B/second'],
+        )
+
+        header4 = "%-5s: %s" % (
+            'Server uptime',
+            header_data['Server uptime'],
+        )
+
+        header.addstr(0, 1, str(header1))
+        header.addstr(1, 1, str(header2))
+        header.addstr(2, 1, str(header3))
+        header.addstr(3, 1, str(header4))
         header.refresh()
 
     def draw_dashboard(self):
