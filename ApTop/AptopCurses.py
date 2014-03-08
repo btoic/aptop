@@ -180,25 +180,23 @@ class AptopCurses(object):
                                         'CPU Usage',
                                         header_data['CPU Usage'],
                                         )
-        header2 = "%-5s: %s %1s: %s %1s: %s" % (
+        header2 = "%-5s: %s %1s: %s" % (
             'Total Traffic',
             header_data['Total Traffic'],
             'Total accesses',
             header_data['Total accesses'],
-            'kB/request',
-            header_data['kB/request'],
         )
 
-        header3 = "%-5s: %s %1s: %s %1s: %s" % (
-            'reqests/sec',
-            header_data['requests/sec'],
+        header3 = "%-5s: %s %1s: %s" % (
             'busy childs',
             header_data['working childs'],
             'idle childs',
             header_data['idle childs'],
         )
 
-        header4 = "%-5s: %s" % (
+        header4 = header_data['requests']
+
+        header5 = "%-5s: %s" % (
             'Server uptime',
             header_data['Server uptime'],
         )
@@ -207,6 +205,7 @@ class AptopCurses(object):
         header.addstr(1, 1, str(header2))
         header.addstr(2, 1, str(header3))
         header.addstr(3, 1, str(header4))
+        header.addstr(4, 1, str(header5))
         header.refresh()
 
     def draw_dashboard(self):

@@ -332,10 +332,7 @@ class ApacheStatus(object):
            -  Total Traffic
            -  working childs #requests currently being processed by the server
            -  idle childs    #idle workers
-           -  requests/sec
-           -  B/second
-           -  kB/request
-
+           -  requests
         """
 
         HEADER_LIST = [
@@ -366,9 +363,7 @@ class ApacheStatus(object):
                             elif req.split()[-1] == 'workers':
                                 headers['idle childs'] = req.split()[0]
                     elif item == 'requests':
-                        for req in line.split('-'):
-                            req = req.strip()
-                            headers[req.split()[1]] = req.split()[0]
+                        headers['requests'] = line
 
                     elif item == 'Total accesses:':
                         for el in line.split('-'):
