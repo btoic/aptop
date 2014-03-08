@@ -23,9 +23,10 @@ class ApacheStatus(object):
         in home path ~/.aptop.conf or /etc/aptop.conf then
         """
         homedir = os.path.expanduser('~')
+        homeconf = os.path.join(homedir, '.aptop.conf')
 
-        if os.path.isfile(os.path.join(homedir, '.aptop.conf')):
-            self.configfile = os.path.join(homedir, '.aptop.conf')
+        if os.path.isfile(homeconf):
+            self.configfile = homeconf
         else:
             self.configfile = None
 
