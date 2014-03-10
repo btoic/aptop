@@ -245,8 +245,9 @@ class AptopCurses(object):
         try:
             formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %-50s' % (
                 'PID', 'M', 'CPU', 'SS', 'Req', 'Conn', 'Acc', 'Client',
-                'VHost', 'Request' + ' ' * self.MAX_W)
-
+                'VHost', 'Request')
+            # fill up the remainder of screen estate with spaces properly
+            formatstr = formatstr + (' ' * (self.MAX_W - len(formatstr)))
             dash.addstr(0, 0, formatstr, curses.A_REVERSE)
         except curses.error:
             pass
