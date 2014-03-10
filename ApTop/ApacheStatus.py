@@ -63,16 +63,19 @@ class ApacheStatus(object):
         self.active = True
         self.sort_by = 'SS'
         # key case must be defined exactly as named in data source
-        self.sort_fields = {'SS': 'float',
-                            'CPU': 'float',
-                            'Req': 'float',
-                            'Conn': 'float',
-                            'VHost': 'str',
-                            'Request': 'str'
-                            }
+        self.sort_fields = {
+            'SS': 'float',
+            'CPU': 'float',
+            'Req': 'float',
+            'Conn': 'float',
+            'VHost': 'str',
+            'Request': 'str'
+        }
         # filterable http methods
-        self.http_methods_available = {'GET', 'HEAD', 'POST', 'PUT',
-                                       'DELETE', 'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'}
+        self.http_methods_available = [
+            'GET', 'HEAD', 'POST', 'PUT', 'DELETE',
+            'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
+        ]
         # show all methods by default
         self.http_methods_active = self.http_methods_available
         # this is passed to reverse parameter on sort(list)
