@@ -11,6 +11,7 @@ FOOTER_HEIGHT = 2
 
 
 class AptopCurses(object):
+
     def __init__(self, aptop):
 
         self.stdscr = curses.initscr()
@@ -144,7 +145,8 @@ class AptopCurses(object):
 
         for method in available:
             if method in current:
-                methods_view.addstr(linecnt, 10, str('* ' + str(method)), curses.A_REVERSE)
+                methods_view.addstr(
+                    linecnt, 10, str('* ' + str(method)), curses.A_REVERSE)
             else:
                 methods_view.addstr(linecnt, 10, str(method))
             linecnt += 1
@@ -203,9 +205,7 @@ class AptopCurses(object):
 
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        header1 = "%-5s: %s %1s: %s" % ('System load',
-                                        os.getloadavg()[0],
-                                        'CPU Usage',
+        header1 = "%-5s: %s" % ('CPU Usage',
                                         header_data['CPU Usage'],
                                         )
         header2 = "%-5s: %s %1s: %s" % (
@@ -252,12 +252,12 @@ class AptopCurses(object):
             pass
         for dash_line in dash_data:
             dcount += 1
-            #dirty cpu missing fix for bug #5
+            # dirty cpu missing fix for bug #5
             if 'CPU' in dash_line:
                 cpu_value = dash_line['CPU']
             else:
                 cpu_value = 'NaN'
-            #end
+            # end
             try:
                 formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % \
                     (

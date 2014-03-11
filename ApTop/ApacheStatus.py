@@ -78,8 +78,8 @@ class ApacheStatus(object):
             'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
         ]
         # show all methods by default
-        # self.http_methods_active = ['OPTIONS', 'POST']
         self.http_methods_active = self.http_methods_available
+        # self.http_methods_active = ['OPTIONS', 'POST']
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
 
