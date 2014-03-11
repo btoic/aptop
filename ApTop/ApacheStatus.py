@@ -343,8 +343,11 @@ class ApacheStatus(object):
                 s.text_content().replace('\n', '')
                 for s in row.findall('.//td')
             ]
-
-            d.append(d[-1].split()[0])
+            try:
+                http_method = d[-1].split()[0]
+            except IndexError:
+                http_method = '?'
+            d.append(http_method)
             vhost_status.append(dict(zip(h2, d)))
 
         return self.sort_vhosts_by(
