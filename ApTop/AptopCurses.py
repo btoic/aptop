@@ -45,6 +45,7 @@ class AptopCurses(object):
             'Q': self.aptop_stop,
             'D': self.draw_update_refresh,
             'O': self.draw_update_order,
+            'M': self.draw_update_http_methods
         }
 
         self.stdscr.nodelay(1)
@@ -129,6 +130,33 @@ class AptopCurses(object):
                         pass
             ref.refresh()
         # close input and exit the loop
+
+    # TODO: build this somehow
+    def draw_update_http_methods(self):
+        methods_view = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
+
+        running = True
+        current = self.aptop.http_methods_active
+        available = self.aptop.http_methods_available
+
+        methods_view.addstr(1, 10, 'Select HTTP methods to display')
+        linecnt = 2
+
+        for method in available:
+            if method in current:
+                methods_view.addstr(linecnt, 10, str('* ' + str(method)), curses.A_REVERSE)
+            else:
+                methods_view.addstr(linecnt, 10, str(method))
+            linecnt += 1
+
+        # TODO: handle moving the cursors and pressing space next
+        # to each option or something to that effect? when to save?
+        while running:
+            c = self.stdscr.getch()
+            if c in [curses.KEY_ENTER, curses.KEY_BREAK, curses.KEY_HOME, 13, 27]:
+                running = False
+                break
+            methods_view.refresh()
 
     def draw_update_order(self):
         order = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
@@ -216,8 +244,9 @@ class AptopCurses(object):
         try:
             formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %-50s' % (
                 'PID', 'M', 'CPU', 'SS', 'Req', 'Conn', 'Acc', 'Client',
-                'VHost', 'Request' + ' ' * self.MAX_W)
-
+                'VHost', 'Request')
+            # fill up the remainder of screen estate with spaces properly
+            formatstr = formatstr + (' ' * (self.MAX_W - len(formatstr)))
             dash.addstr(0, 0, formatstr, curses.A_REVERSE)
         except curses.error:
             pass

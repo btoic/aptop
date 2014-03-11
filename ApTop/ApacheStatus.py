@@ -17,6 +17,7 @@ except:
 
 
 class ApacheStatus(object):
+
     def __init__(self):
         """
         Try to detect config file location, trying to use user defined config
@@ -63,15 +64,31 @@ class ApacheStatus(object):
         self.active = True
         self.sort_by = 'SS'
         # key case must be defined exactly as named in data source
-        self.sort_fields = {'SS': 'float',
-                            'CPU': 'float',
-                            'Req': 'float',
-                            'Conn': 'float',
-                            'VHost': 'str',
-                            'Request': 'str'
-                            }
+        self.sort_fields = {
+            'SS': 'float',
+            'CPU': 'float',
+            'Req': 'float',
+            'Conn': 'float',
+            'VHost': 'str',
+            'Request': 'str'
+        }
+        # filterable http methods
+        self.http_methods_available = [
+            'GET', 'HEAD', 'POST', 'PUT', 'DELETE',
+            'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
+        ]
+        # show all methods by default
+        # self.http_methods_active = ['OPTIONS', 'POST']
+        self.http_methods_active = self.http_methods_available
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
+
+    def http_method_options(self):
+        """ (NoneType) -> list of string and dict
+
+            Returns the current self.http_methods_active and self.http_methods_available
+        """
+        return [self.http_methods_active, self.http_methods_available]
 
     def sort_options(self):
         """ (NoneType) -> list of string and dict
@@ -132,6 +149,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['VHost'] in vstatus:
                 vstatus[status['VHost']] += 1
@@ -155,6 +173,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['Client'] in cstatus:
                 cstatus[status['Client']] += 1
@@ -178,6 +197,8 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+
+        vhosts = self.filter_http_methods(vhosts)
 
         for status in vhosts:
 
@@ -223,6 +244,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['Request'] in rstatus:
                 rstatus[status['Request']] += 1
@@ -246,6 +268,10 @@ class ApacheStatus(object):
                 return True
         return False
 
+    def update_active_http_methods(self, fields):
+        self.http_methods_active = fields
+        return True
+
     def filter_active(self, data):
         """
         (list of dict) -> list of dict
@@ -260,6 +286,17 @@ class ApacheStatus(object):
                 filtered.append(status)
         return filtered
 
+    def filter_http_methods(self, data):
+        """
+        (list of dict) -> list of dict
+        Returns the filtered list of dicts based on http methods we're currently interested in
+        """
+        filtered = []
+        for status in data:
+            if status['Method'] in self.http_methods_active:
+                filtered.append(status)
+        return filtered
+
     def display_vhosts(self, data):
         """
         (list of dict) -> list of dict
@@ -269,6 +306,7 @@ class ApacheStatus(object):
             results = self.filter_active(data)
         else:
             results = data
+        results = self.filter_http_methods(results)
         return results
 
     def sort_vhosts_by(self, values, sort_method):
