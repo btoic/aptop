@@ -272,6 +272,16 @@ class ApacheStatus(object):
         return False
 
     def update_active_http_methods(self, fields):
+        # convert a possible comma-separeted list of methods into a list
+        if isinstance(fields, basestring):
+            fields = map(str.strip, fields.split(','))
+            fields = filter(None, fields)
+
+        # default to all available methods for falsy values
+        # (which should include empty strings/lists)
+        if not fields:
+            fields = self.http_methods_available
+
         self.http_methods_active = fields
         return True
 
