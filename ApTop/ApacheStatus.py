@@ -23,13 +23,16 @@ class ApacheStatus(object):
         Try to detect config file location, trying to use user defined config
         in home path ~/.aptop.conf or /etc/aptop.conf then
         """
+        self.configfile = None
+
         homedir = os.path.expanduser('~')
         homeconf = os.path.join(homedir, '.aptop.conf')
 
-        if os.path.isfile(homeconf):
-            self.configfile = homeconf
-        else:
-            self.configfile = None
+        test_conf_files = [homeconf, '/etc/aptop.conf']
+        for f in test_conf_files:
+            if os.path.isfile(f):
+                self.configfile = f
+                break
 
         """
         Let's populate some defaults if no config file is found
