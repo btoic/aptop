@@ -383,7 +383,7 @@ class ApacheStatus(object):
             'Server uptime:',
             'Total accesses:',
             'CPU Usage:',
-            'requests',
+            'requests/sec',
             'workers',
         ]
 
@@ -401,7 +401,7 @@ class ApacheStatus(object):
                                 headers['working childs'] = req.split()[0]
                             elif req.split()[-1] == 'workers':
                                 headers['idle childs'] = req.split()[0]
-                    elif item == 'requests':
+                    elif item == 'requests/sec':
                         headers['requests'] = line
 
                     elif item == 'Total accesses:':
