@@ -203,11 +203,7 @@ class AptopCurses(object):
 
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        header1 = "%-5s: %s %1s: %s" % ('System load',
-                                        os.getloadavg()[0],
-                                        'CPU Usage',
-                                        header_data['CPU Usage'],
-                                        )
+        header1 = "%-5s: %s" % ( 'CPU Usage', header_data['CPU Usage'])
         header2 = "%-5s: %s %1s: %s" % (
             'Total Traffic',
             header_data['Total Traffic'],
