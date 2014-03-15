@@ -11,6 +11,7 @@ FOOTER_HEIGHT = 2
 
 
 class AptopCurses(object):
+
     def __init__(self, aptop):
 
         self.stdscr = curses.initscr()
@@ -139,24 +140,46 @@ class AptopCurses(object):
         current = self.aptop.http_methods_active
         available = self.aptop.http_methods_available
 
-        methods_view.addstr(1, 10, 'Select HTTP methods to display')
-        linecnt = 2
+        methods_view.addstr(1, 10, 'All available HTTP methods (default):')
+        methods_view.addstr(2, 10, ','.join(available), curses.A_BOLD)
 
-        for method in available:
-            if method in current:
-                methods_view.addstr(linecnt, 10, str('* ' + str(method)), curses.A_REVERSE)
-            else:
-                methods_view.addstr(linecnt, 10, str(method))
-            linecnt += 1
+        methods_view.addstr(4, 10, 'Currently displayed HTTP methods:')
+        methods_view.addstr(5, 10, ','.join(current), curses.A_BOLD)
 
-        # TODO: handle moving the cursors and pressing space next
-        # to each option or something to that effect? when to save?
+        methods_view.addstr(7, 10, str('New methods filter:'))
+        methods_view.addstr(8, 10, str('(type in the ones you\'re interested in, separating multiples with a comma. empty value defaults to all)'))
+        fields = ''
+
+        cancel_keys = [
+            curses.KEY_ENTER,
+            curses.KEY_BREAK,
+            curses.KEY_HOME,
+            # \r
+            13,
+            # esc
+            27
+        ]
+
         while running:
             c = self.stdscr.getch()
-            if c in [curses.KEY_ENTER, curses.KEY_BREAK, curses.KEY_HOME, 13, 27]:
-                running = False
-                break
+            if c in cancel_keys:
+                if self.aptop.update_active_http_methods(fields):
+                    running = False
+                    break
+                else:
+                    methods_view.addstr(9, 50, str('Invalid input'))
+                    methods_view.addstr(9, 45, str(' ') * (len(fields) + 20))
+                    methods_view.addstr(9, 44, str(' '))
+                    fields = ''
+            else:
+                try:
+                    # TODO: handle backspace/delete properly?
+                    fields += chr(c)
+                    methods_view.addstr(9, 10, str(fields), curses.A_BOLD)
+                except:
+                    pass
             methods_view.refresh()
+        # close input and exit the loop
 
     def draw_update_order(self):
         order = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
@@ -203,7 +226,12 @@ class AptopCurses(object):
 
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        header1 = "%-5s: %s" % ( 'CPU Usage', header_data['CPU Usage'])
+
+        header1 = "%-5s: %s" % (
+            'CPU Usage',
+            header_data['CPU Usage']
+        )
+
         header2 = "%-5s: %s %1s: %s" % (
             'Total Traffic',
             header_data['Total Traffic'],
@@ -248,12 +276,12 @@ class AptopCurses(object):
             pass
         for dash_line in dash_data:
             dcount += 1
-            #dirty cpu missing fix for bug #5
+            # dirty cpu missing fix for bug #5
             if 'CPU' in dash_line:
                 cpu_value = dash_line['CPU']
             else:
                 cpu_value = 'NaN'
-            #end
+            # end
             try:
                 formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % \
                     (

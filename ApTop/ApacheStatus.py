@@ -23,13 +23,16 @@ class ApacheStatus(object):
         Try to detect config file location, trying to use user defined config
         in home path ~/.aptop.conf or /etc/aptop.conf then
         """
+        self.configfile = None
+
         homedir = os.path.expanduser('~')
         homeconf = os.path.join(homedir, '.aptop.conf')
 
-        if os.path.isfile(homeconf):
-            self.configfile = homeconf
-        else:
-            self.configfile = None
+        test_conf_files = [homeconf, '/etc/aptop.conf']
+        for f in test_conf_files:
+            if os.path.isfile(f):
+                self.configfile = f
+                break
 
         """
         Let's populate some defaults if no config file is found
@@ -78,8 +81,8 @@ class ApacheStatus(object):
             'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
         ]
         # show all methods by default
-        # self.http_methods_active = ['OPTIONS', 'POST']
         self.http_methods_active = self.http_methods_available
+        # self.http_methods_active = ['OPTIONS', 'POST']
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
 
@@ -269,6 +272,16 @@ class ApacheStatus(object):
         return False
 
     def update_active_http_methods(self, fields):
+        # convert a possible comma-separeted list of methods into a list
+        if isinstance(fields, basestring):
+            fields = map(str.strip, fields.split(','))
+            fields = filter(None, fields)
+
+        # default to all available methods for falsy values
+        # (which should include empty strings/lists)
+        if not fields:
+            fields = self.http_methods_available
+
         self.http_methods_active = fields
         return True
 
@@ -343,8 +356,11 @@ class ApacheStatus(object):
                 s.text_content().replace('\n', '')
                 for s in row.findall('.//td')
             ]
-
-            d.append(d[-1].split()[0])
+            try:
+                http_method = d[-1].split()[0]
+            except IndexError:
+                http_method = '?'
+            d.append(http_method)
             vhost_status.append(dict(zip(h2, d)))
 
         return self.sort_vhosts_by(
