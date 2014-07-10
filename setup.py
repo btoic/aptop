@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 def runSetup ():
     setup(name='aptop',
-          version='0.3.1b',
+          version='0.3.2b',
           author='Branko Toic' ,
           author_email='branko@toic.org' ,
           url='https://bitbucket.org/btoic/aptop/get/master.tar.gz' ,
