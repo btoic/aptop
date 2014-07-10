@@ -140,6 +140,8 @@ While running ApTop responds to following options:
 
 **O** - change sort field
 
+**M** - filter methods
+
 Aditional links
 ---------------
 

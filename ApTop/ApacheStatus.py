@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.3.1b"
+__version__ = "0.3.2b"
 
 import ConfigParser
 import os
@@ -17,17 +17,22 @@ except:
 
 
 class ApacheStatus(object):
+
     def __init__(self):
         """
         Try to detect config file location, trying to use user defined config
         in home path ~/.aptop.conf or /etc/aptop.conf then
         """
-        homedir = os.path.expanduser('~')
+        self.configfile = None
 
-        if os.path.isfile(os.path.join(homedir, '.aptop.conf')):
-            self.configfile = os.path.join(homedir, '.aptop.conf')
-        else:
-            self.configfile = None
+        homedir = os.path.expanduser('~')
+        homeconf = os.path.join(homedir, '.aptop.conf')
+
+        test_conf_files = [homeconf, '/etc/aptop.conf']
+        for f in test_conf_files:
+            if os.path.isfile(f):
+                self.configfile = f
+                break
 
         """
         Let's populate some defaults if no config file is found
@@ -62,15 +67,31 @@ class ApacheStatus(object):
         self.active = True
         self.sort_by = 'SS'
         # key case must be defined exactly as named in data source
-        self.sort_fields = {'SS': 'float',
-                            'CPU': 'float',
-                            'Req': 'float',
-                            'Conn': 'float',
-                            'VHost': 'str',
-                            'Request': 'str'
-                            }
+        self.sort_fields = {
+            'SS': 'float',
+            'CPU': 'float',
+            'Req': 'float',
+            'Conn': 'float',
+            'VHost': 'str',
+            'Request': 'str'
+        }
+        # filterable http methods
+        self.http_methods_available = [
+            'GET', 'HEAD', 'POST', 'PUT', 'DELETE',
+            'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
+        ]
+        # show all methods by default
+        self.http_methods_active = self.http_methods_available
+        # self.http_methods_active = ['OPTIONS', 'POST']
         # this is passed to reverse parameter on sort(list)
         self.sort_order = False
+
+    def http_method_options(self):
+        """ (NoneType) -> list of string and dict
+
+            Returns the current self.http_methods_active and self.http_methods_available
+        """
+        return [self.http_methods_active, self.http_methods_available]
 
     def sort_options(self):
         """ (NoneType) -> list of string and dict
@@ -131,6 +152,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['VHost'] in vstatus:
                 vstatus[status['VHost']] += 1
@@ -154,6 +176,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['Client'] in cstatus:
                 cstatus[status['Client']] += 1
@@ -177,6 +200,8 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+
+        vhosts = self.filter_http_methods(vhosts)
 
         for status in vhosts:
 
@@ -222,6 +247,7 @@ class ApacheStatus(object):
             vhosts = self.filter_active(data)
         else:
             vhosts = data
+        vhosts = self.filter_http_methods(data)
         for status in vhosts:
             if status['Request'] in rstatus:
                 rstatus[status['Request']] += 1
@@ -245,6 +271,20 @@ class ApacheStatus(object):
                 return True
         return False
 
+    def update_active_http_methods(self, fields):
+        # convert a possible comma-separeted list of methods into a list
+        if isinstance(fields, basestring):
+            fields = map(str.strip, fields.split(','))
+            fields = filter(None, fields)
+
+        # default to all available methods for falsy values
+        # (which should include empty strings/lists)
+        if not fields:
+            fields = self.http_methods_available
+
+        self.http_methods_active = fields
+        return True
+
     def filter_active(self, data):
         """
         (list of dict) -> list of dict
@@ -259,6 +299,17 @@ class ApacheStatus(object):
                 filtered.append(status)
         return filtered
 
+    def filter_http_methods(self, data):
+        """
+        (list of dict) -> list of dict
+        Returns the filtered list of dicts based on http methods we're currently interested in
+        """
+        filtered = []
+        for status in data:
+            if status['Method'] in self.http_methods_active:
+                filtered.append(status)
+        return filtered
+
     def display_vhosts(self, data):
         """
         (list of dict) -> list of dict
@@ -268,6 +319,7 @@ class ApacheStatus(object):
             results = self.filter_active(data)
         else:
             results = data
+        results = self.filter_http_methods(results)
         return results
 
     def sort_vhosts_by(self, values, sort_method):
@@ -304,8 +356,11 @@ class ApacheStatus(object):
                 s.text_content().replace('\n', '')
                 for s in row.findall('.//td')
             ]
-
-            d.append(d[-1].split()[0])
+            try:
+                http_method = d[-1].split()[0]
+            except IndexError:
+                http_method = '?'
+            d.append(http_method)
             vhost_status.append(dict(zip(h2, d)))
 
         return self.sort_vhosts_by(
@@ -332,10 +387,7 @@ class ApacheStatus(object):
            -  Total Traffic
            -  working childs #requests currently being processed by the server
            -  idle childs    #idle workers
-           -  requests/sec
-           -  B/second
-           -  kB/request
-
+           -  requests
         """
 
         HEADER_LIST = [
@@ -347,7 +399,7 @@ class ApacheStatus(object):
             'Server uptime:',
             'Total accesses:',
             'CPU Usage:',
-            'requests',
+            'requests/sec',
             'workers',
         ]
 
@@ -365,10 +417,8 @@ class ApacheStatus(object):
                                 headers['working childs'] = req.split()[0]
                             elif req.split()[-1] == 'workers':
                                 headers['idle childs'] = req.split()[0]
-                    elif item == 'requests':
-                        for req in line.split('-'):
-                            req = req.strip()
-                            headers[req.split()[1]] = req.split()[0]
+                    elif item == 'requests/sec':
+                        headers['requests'] = line
 
                     elif item == 'Total accesses:':
                         for el in line.split('-'):

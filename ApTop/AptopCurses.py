@@ -1,6 +1,6 @@
 __author__ = "branko@toic.org (http://toic.org)"
 __date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.3.1b"
+__version__ = "0.3.2b"
 
 import curses
 from _curses import error as CursesError
@@ -11,6 +11,7 @@ FOOTER_HEIGHT = 2
 
 
 class AptopCurses(object):
+
     def __init__(self, aptop):
 
         self.stdscr = curses.initscr()
@@ -45,6 +46,7 @@ class AptopCurses(object):
             'Q': self.aptop_stop,
             'D': self.draw_update_refresh,
             'O': self.draw_update_order,
+            'M': self.draw_update_http_methods
         }
 
         self.stdscr.nodelay(1)
@@ -130,6 +132,55 @@ class AptopCurses(object):
             ref.refresh()
         # close input and exit the loop
 
+    # TODO: build this somehow
+    def draw_update_http_methods(self):
+        methods_view = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
+
+        running = True
+        current = self.aptop.http_methods_active
+        available = self.aptop.http_methods_available
+
+        methods_view.addstr(1, 10, 'All available HTTP methods (default):')
+        methods_view.addstr(2, 10, ','.join(available), curses.A_BOLD)
+
+        methods_view.addstr(4, 10, 'Currently displayed HTTP methods:')
+        methods_view.addstr(5, 10, ','.join(current), curses.A_BOLD)
+
+        methods_view.addstr(7, 10, str('New methods filter:'))
+        methods_view.addstr(8, 10, str('(type in the ones you\'re interested in, separating multiples with a comma. empty value defaults to all)'))
+        fields = ''
+
+        cancel_keys = [
+            curses.KEY_ENTER,
+            curses.KEY_BREAK,
+            curses.KEY_HOME,
+            # \r
+            13,
+            # esc
+            27
+        ]
+
+        while running:
+            c = self.stdscr.getch()
+            if c in cancel_keys:
+                if self.aptop.update_active_http_methods(fields):
+                    running = False
+                    break
+                else:
+                    methods_view.addstr(9, 50, str('Invalid input'))
+                    methods_view.addstr(9, 45, str(' ') * (len(fields) + 20))
+                    methods_view.addstr(9, 44, str(' '))
+                    fields = ''
+            else:
+                try:
+                    # TODO: handle backspace/delete properly?
+                    fields += chr(c)
+                    methods_view.addstr(9, 10, str(fields), curses.A_BOLD)
+                except:
+                    pass
+            methods_view.refresh()
+        # close input and exit the loop
+
     def draw_update_order(self):
         order = curses.newwin(self.MAX_H, self.MAX_W, 0, 0)
 
@@ -175,30 +226,29 @@ class AptopCurses(object):
 
         header = curses.newwin(HEADER_HEIGHT, self.MAX_W, 0, 0)
         header_data = self.aptop.parse_header()
-        header1 = "%-5s: %s %1s: %s" % ('System load',
-                                        os.getloadavg()[0],
-                                        'CPU Usage',
-                                        header_data['CPU Usage'],
-                                        )
-        header2 = "%-5s: %s %1s: %s %1s: %s" % (
+
+        header1 = "%-5s: %s" % (
+            'CPU Usage',
+            header_data['CPU Usage']
+        )
+
+        header2 = "%-5s: %s %1s: %s" % (
             'Total Traffic',
             header_data['Total Traffic'],
             'Total accesses',
             header_data['Total accesses'],
-            'kB/request',
-            header_data['kB/request'],
         )
 
-        header3 = "%-5s: %s %1s: %s %1s: %s" % (
-            'reqests/sec',
-            header_data['requests/sec'],
+        header3 = "%-5s: %s %1s: %s" % (
             'busy childs',
             header_data['working childs'],
             'idle childs',
             header_data['idle childs'],
         )
 
-        header4 = "%-5s: %s" % (
+        header4 = header_data['requests']
+
+        header5 = "%-5s: %s" % (
             'Server uptime',
             header_data['Server uptime'],
         )
@@ -207,6 +257,7 @@ class AptopCurses(object):
         header.addstr(1, 1, str(header2))
         header.addstr(2, 1, str(header3))
         header.addstr(3, 1, str(header4))
+        header.addstr(4, 1, str(header5))
         header.refresh()
 
     def draw_dashboard(self):
@@ -217,19 +268,20 @@ class AptopCurses(object):
         try:
             formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %-50s' % (
                 'PID', 'M', 'CPU', 'SS', 'Req', 'Conn', 'Acc', 'Client',
-                'VHost', 'Request' + ' ' * self.MAX_W)
-
+                'VHost', 'Request')
+            # fill up the remainder of screen estate with spaces properly
+            formatstr = formatstr + (' ' * (self.MAX_W - len(formatstr)))
             dash.addstr(0, 0, formatstr, curses.A_REVERSE)
         except curses.error:
             pass
         for dash_line in dash_data:
             dcount += 1
-            #dirty cpu missing fix for bug #5
+            # dirty cpu missing fix for bug #5
             if 'CPU' in dash_line:
                 cpu_value = dash_line['CPU']
             else:
                 cpu_value = 'NaN'
-            #end
+            # end
             try:
                 formatstr = '%-5s %1s %7s %3s %6s %7s %12s %-15s %-25s %s' % \
                     (
