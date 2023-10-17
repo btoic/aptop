@@ -1,16 +1,20 @@
-version 0.3.0b
+# version 0.4.0
 
-Few ui bug fixes
-rewriten header display
-apache parser added method field 
-apache header pasrer changed
+- python3 compatibility
 
-New features in version 0.2.4b
+# version 0.3.0b
 
-Added by url view - U key
+- Few ui bug fixes
+- rewriten header display
+- apache parser added method field
+- apache header pasrer changed
 
-New features in version 0.2.3b
+# New features in version 0.2.4b
 
-Added in program supprt for changing refresh rate - D key
-Added in program support for changing sort field - O key
-Some minor bug fixes and optimizations
+- Added by url view - U key
+
+# New features in version 0.2.3b
+
+- Added in program supprt for changing refresh rate - D key
+- Added in program support for changing sort field - O key
+- Some minor bug fixes and optimizations
