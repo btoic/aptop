@@ -1,23 +1,22 @@
-__author__ = "branko@toic.org (http://toic.org)"
-__date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.3.2b"
+__author__ = "branko.toic@gmail.com (https://toic.org)"
+__date__ = "Oct 17, 2023 0:10 PM$"
+__version__ = "0.4.0"
 
-import ConfigParser
+import configparser
 import os
 import sys
 from operator import itemgetter
 
 try:
     import lxml.html  # @UnresolvedImport
-except:
-    print "No lxml package found..."
-    print "please install lxml >= 3.x.x"
-    print "best way to install easy_install lxml"
+except ImportError:
+    print("No lxml package found...")
+    print("please install lxml >= 3.x.x")
+    print("try pip install lxml")
     sys.exit(1)
 
 
-class ApacheStatus(object):
-
+class ApacheStatus:
     def __init__(self):
         """
         Try to detect config file location, trying to use user defined config
@@ -25,10 +24,10 @@ class ApacheStatus(object):
         """
         self.configfile = None
 
-        homedir = os.path.expanduser('~')
-        homeconf = os.path.join(homedir, '.aptop.conf')
+        homedir = os.path.expanduser("~")
+        homeconf = os.path.join(homedir, ".aptop.conf")
 
-        test_conf_files = [homeconf, '/etc/aptop.conf']
+        test_conf_files = [homeconf, "/etc/aptop.conf"]
         for f in test_conf_files:
             if os.path.isfile(f):
                 self.configfile = f
@@ -38,47 +37,52 @@ class ApacheStatus(object):
         Let's populate some defaults if no config file is found
         """
         if not self.configfile:
-            if os.path.isdir('/var/cpanel'):
-                self.status_url = 'http://localhost/whm-server-status'
+            if os.path.isdir("/var/cpanel"):
+                self.status_url = "http://localhost/whm-server-status"
             else:
-                self.status_url = 'http://localhost/server-status'
-            self.refresh = '5'
+                self.status_url = "http://localhost/server-status"
+            self.refresh = "5"
         else:
-            config = ConfigParser.ConfigParser()
-            config.readfp(open(self.configfile))
+            config = configparser.ConfigParser()
+            with open(self.configfile, "r") as configfile:
+                config.readfp(configfile)
             try:
-                self.status_url = config.get('aptop', 'status_url')
-            except:
-                if os.path.isdir('/var/cpanel'):
-                    self.status_url = 'http://localhost/whm-server-status'
+                self.status_url = config.get("aptop", "status_url")
+            except configparser.NoOptionError:
+                if os.path.isdir("/var/cpanel"):
+                    self.status_url = "http://localhost/whm-server-status"
                 else:
-                    self.status_url = 'http://localhost/server-status'
-            try:
-                self.refresh = config.get('aptop', 'refresh')
-            except:
-                self.refresh = '5'
+                    self.status_url = "http://localhost/server-status"
+            self.refresh = config.get("aptop", "refresh", fallback="5")
         try:
             self.tree = lxml.html.parse(self.status_url)
         except:
-            print "Apache not running or wrong mod_status url!?"
+            print("Apache not running or wrong mod_status url!?")
             sys.exit(1)
 
         # define should we filter out inactive sessions
         self.active = True
-        self.sort_by = 'SS'
+        self.sort_by = "SS"
         # key case must be defined exactly as named in data source
         self.sort_fields = {
-            'SS': 'float',
-            'CPU': 'float',
-            'Req': 'float',
-            'Conn': 'float',
-            'VHost': 'str',
-            'Request': 'str'
+            "SS": "float",
+            "CPU": "float",
+            "Req": "float",
+            "Conn": "float",
+            "VHost": "str",
+            "Request": "str",
         }
         # filterable http methods
         self.http_methods_available = [
-            'GET', 'HEAD', 'POST', 'PUT', 'DELETE',
-            'TRACE', 'OPTIONS', 'CONNECT', 'PATCH'
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "DELETE",
+            "TRACE",
+            "OPTIONS",
+            "CONNECT",
+            "PATCH",
         ]
         # show all methods by default
         self.http_methods_active = self.http_methods_available
@@ -87,21 +91,22 @@ class ApacheStatus(object):
         self.sort_order = False
 
     def http_method_options(self):
-        """ (NoneType) -> list of string and dict
+        """(NoneType) -> list of string and dict
 
-            Returns the current self.http_methods_active and self.http_methods_available
+        Returns the current self.http_methods_active and
+        self.http_methods_available
         """
         return [self.http_methods_active, self.http_methods_available]
 
     def sort_options(self):
-        """ (NoneType) -> list of string and dict
+        """(NoneType) -> list of string and dict
 
-           Returns the current self.sort_fields and self.sort_by variable
+        Returns the current self.sort_fields and self.sort_by variable
         """
         return [self.sort_by, self.sort_fields]
 
     def reverse_order(self):
-        """ just reverese the ordering of current sorting """
+        """just reverese the ordering of current sorting"""
 
         if self.sort_order:
             self.sort_order = False
@@ -125,7 +130,6 @@ class ApacheStatus(object):
         if self.tree:
             old_tree = self.tree
         try:
-
             self.tree = lxml.html.parse(self.status_url)
         except:
             self.tree = old_tree
@@ -137,7 +141,7 @@ class ApacheStatus(object):
         Checks the data string for Apache Status title and returns true or
         false
         """
-        return self.tree.find('.//title').text == 'Apache Status'
+        return self.tree.find(".//title").text == "Apache Status"
 
     def count_by_vhost(self, data):
         """
@@ -154,11 +158,11 @@ class ApacheStatus(object):
             vhosts = data
         vhosts = self.filter_http_methods(data)
         for status in vhosts:
-            if status['VHost'] in vstatus:
-                vstatus[status['VHost']] += 1
+            if status["VHost"] in vstatus:
+                vstatus[status["VHost"]] += 1
             else:
-                vstatus[status['VHost']] = 1
-        items = vstatus.items()
+                vstatus[status["VHost"]] = 1
+        items = list(vstatus.items())
         items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
@@ -178,11 +182,11 @@ class ApacheStatus(object):
             vhosts = data
         vhosts = self.filter_http_methods(data)
         for status in vhosts:
-            if status['Client'] in cstatus:
-                cstatus[status['Client']] += 1
+            if status["Client"] in cstatus:
+                cstatus[status["Client"]] += 1
             else:
-                cstatus[status['Client']] = 1
-        items = cstatus.items()
+                cstatus[status["Client"]] = 1
+        items = list(cstatus.items())
         items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
@@ -204,9 +208,8 @@ class ApacheStatus(object):
         vhosts = self.filter_http_methods(vhosts)
 
         for status in vhosts:
-
-            vhost = status['VHost']
-            req_uri = status['Request']
+            vhost = status["VHost"]
+            req_uri = status["Request"]
 
             if vhost in grouped:
                 if req_uri in grouped[vhost]:
@@ -222,15 +225,15 @@ class ApacheStatus(object):
             vhost_requests = sorted(
                 grouped[vhost].items(),
                 key=lambda x: (x[1], x[0]),
-                reverse=self.sort_order
+                reverse=self.sort_order,
             )
             count = sum(x[1] for x in vhost_requests)
-            grouped[vhost] = {'reqs': vhost_requests, 'cnt': count}
+            grouped[vhost] = {"reqs": vhost_requests, "cnt": count}
 
         grouped_sorted = sorted(
             grouped.items(),
-            key=lambda x: (x[1].values()[0], x[0]),
-            reverse=self.sort_order
+            key=lambda x: (list(x[1].values())[0], x[0]),
+            reverse=self.sort_order,
         )
         return grouped_sorted
 
@@ -249,11 +252,11 @@ class ApacheStatus(object):
             vhosts = data
         vhosts = self.filter_http_methods(data)
         for status in vhosts:
-            if status['Request'] in rstatus:
-                rstatus[status['Request']] += 1
+            if status["Request"] in rstatus:
+                rstatus[status["Request"]] += 1
             else:
-                rstatus[status['Request']] = 1
-        items = rstatus.items()
+                rstatus[status["Request"]] = 1
+        items = list(rstatus.items())
         items.sort(key=itemgetter(1), reverse=self.sort_order)
 
         return items
@@ -273,9 +276,9 @@ class ApacheStatus(object):
 
     def update_active_http_methods(self, fields):
         # convert a possible comma-separeted list of methods into a list
-        if isinstance(fields, basestring):
-            fields = map(str.strip, fields.split(','))
-            fields = filter(None, fields)
+        if isinstance(fields, str):
+            fields = list(map(str.strip, fields.split(",")))
+            fields = [_f for _f in fields if _f]
 
         # default to all available methods for falsy values
         # (which should include empty strings/lists)
@@ -295,18 +298,19 @@ class ApacheStatus(object):
         filtered = []
 
         for status in data:
-            if status['M'] != '_' and status['M'] != '.':
+            if status["M"] != "_" and status["M"] != ".":
                 filtered.append(status)
         return filtered
 
     def filter_http_methods(self, data):
         """
         (list of dict) -> list of dict
-        Returns the filtered list of dicts based on http methods we're currently interested in
+        Returns the filtered list of dicts based on http methods we're
+        currently interested in
         """
         filtered = []
         for status in data:
-            if status['Method'] in self.http_methods_active:
+            if status["Method"] in self.http_methods_active:
                 filtered.append(status)
         return filtered
 
@@ -323,18 +327,17 @@ class ApacheStatus(object):
         return results
 
     def sort_vhosts_by(self, values, sort_method):
-
-        if sort_method == 'float':
+        if sort_method == "float":
             return sorted(
                 values,
                 key=lambda k: float(k[self.sort_by]),
-                reverse=self.sort_order
+                reverse=self.sort_order,
             )
-        elif sort_method == 'str':
+        elif sort_method == "str":
             return sorted(
                 values,
                 key=lambda k: str(k[self.sort_by]),
-                reverse=self.sort_order
+                reverse=self.sort_order,
             )
 
     def parse_vhosts(self):
@@ -348,25 +351,21 @@ class ApacheStatus(object):
         """
         tree = self.tree.xpath('//table[@border="0"]')[0]
         vhost_status = []
-        headers = tree.findall('.//th')
-        h2 = [s.text_content().replace('\n', '') for s in headers]
+        headers = tree.findall(".//th")
+        h2 = [s.text_content().replace("\n", "") for s in headers]
         h2.append("Method")
-        for row in tree.findall('.//tr')[1:]:  # this is header, excluding
+        for row in tree.findall(".//tr")[1:]:  # this is header, excluding
             d = [
-                s.text_content().replace('\n', '')
-                for s in row.findall('.//td')
+                s.text_content().replace("\n", "") for s in row.findall(".//td")
             ]
             try:
                 http_method = d[-1].split()[0]
             except IndexError:
-                http_method = '?'
+                http_method = "?"
             d.append(http_method)
-            vhost_status.append(dict(zip(h2, d)))
+            vhost_status.append(dict(list(zip(h2, d))))
 
-        return self.sort_vhosts_by(
-            vhost_status,
-            self.sort_fields[self.sort_by]
-        )
+        return self.sort_vhosts_by(vhost_status, self.sort_fields[self.sort_by])
 
     def parse_header(self):
         """
@@ -391,43 +390,42 @@ class ApacheStatus(object):
         """
 
         HEADER_LIST = [
-            'Server Version:',
-            'Server Built:',
-            'Current Time:',
-            'Restart Time:',
-            'Parent Server Generation:',
-            'Server uptime:',
-            'Total accesses:',
-            'CPU Usage:',
-            'requests/sec',
-            'workers',
+            "Server Version:",
+            "Server Built:",
+            "Current Time:",
+            "Restart Time:",
+            "Parent Server Generation:",
+            "Server uptime:",
+            "Total accesses:",
+            "CPU Usage:",
+            "requests/sec",
+            "workers",
         ]
 
         headers = {}
 
-        for h in self.tree.findall('.//dt'):
-            line = h.text.replace('\n', '')
+        for h in self.tree.findall(".//dt"):
+            line = h.text.replace("\n", "")
             for item in HEADER_LIST:
                 if item in line:
-
-                    if item == 'workers':
-                        for req in line.split(','):
+                    if item == "workers":
+                        for req in line.split(","):
                             req = req.strip()
-                            if req.split()[-1] == 'processed':
-                                headers['working childs'] = req.split()[0]
-                            elif req.split()[-1] == 'workers':
-                                headers['idle childs'] = req.split()[0]
-                    elif item == 'requests/sec':
-                        headers['requests'] = line
+                            if req.split()[-1] == "processed":
+                                headers["working childs"] = req.split()[0]
+                            elif req.split()[-1] == "workers":
+                                headers["idle childs"] = req.split()[0]
+                    elif item == "requests/sec":
+                        headers["requests"] = line
 
-                    elif item == 'Total accesses:':
-                        for el in line.split('-'):
+                    elif item == "Total accesses:":
+                        for el in line.split("-"):
                             el = el.strip()
-                            key = el.split(':')[0].strip()
-                            value = el.split(':')[1].strip()
+                            key = el.split(":")[0].strip()
+                            value = el.split(":")[1].strip()
                             headers[key] = value
 
                     else:
-                        headers[item[:-1]] = line.split(':')[1].strip()
+                        headers[item[:-1]] = line.split(":")[1].strip()
 
         return headers

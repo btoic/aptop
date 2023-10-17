@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-__author__ = "branko@toic.org (http://toic.org)"
-__date__ = "Dec 24, 2012 0:10 PM$"
-__version__ = "0.3.2b"
+__author__ = "branko.toic@gmail.org (https://toic.org)"
+__date__ = "Oct 17, 2023 0:10 PM$"
+__version__ = "0.4.0"
 
 
 from ApTop import ApacheStatus
