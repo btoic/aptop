@@ -156,7 +156,7 @@ class ApacheStatus:
             vhosts = self.filter_active(data)
         else:
             vhosts = data
-        vhosts = self.filter_http_methods(data)
+        vhosts = self.filter_http_methods(vhosts)
         for status in vhosts:
             if status["VHost"] in vstatus:
                 vstatus[status["VHost"]] += 1
@@ -180,7 +180,7 @@ class ApacheStatus:
             vhosts = self.filter_active(data)
         else:
             vhosts = data
-        vhosts = self.filter_http_methods(data)
+        vhosts = self.filter_http_methods(vhosts)
         for status in vhosts:
             if status["Client"] in cstatus:
                 cstatus[status["Client"]] += 1
