@@ -65,6 +65,10 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
+    - name: release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: CHANGELOG.md
     - name: Download all the dists
       uses: actions/download-artifact@v3
       with:
